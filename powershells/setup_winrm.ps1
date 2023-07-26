@@ -27,20 +27,13 @@ else {
 Set-Service WinRM -StartupType 'Automatic'
 
 # Create a firewall rule to allow WinRM HTTPS inbound
-if ($environment -eq "yes") {
-    # AWS Security Group Management and enabling WinRM HTTPS for both IPv4 and IPv6
-    Write-Host "Add AWS Security Group rules for WinRM HTTPS in 0.0.0.0 and ::/0  "
-}
-elseif ($environment -eq "no") {
+# AWS Security Group Management and enabling WinRM HTTPS for both IPv4 and IPv6
+    Write-Host "1) Add AWS Security Group rules for WinRM HTTPS in 0.0.0.0 and ::/0  "
     # Enabling WinRM ports for both IPv4 and IPv6 using New-NetFirewallRule
-    Write-Host "Enabling WinRM ports for both IPv4 and IPv6 on the local server..."
+    Write-Host "2) Enabling WinRM ports for both IPv4 and IPv6 on the local server..."
     New-NetFirewallRule -DisplayName "Allow WinRM HTTPS IPv4" -Direction Inbound -LocalPort 5986 -Protocol TCP -Action Allow
     New-NetFirewallRule -DisplayName "Allow WinRM HTTPS IPv6" -Direction Inbound -LocalPort 5986 -Protocol TCP -Action Allow -LocalAddress ::/0
-    Write-Host "WinRM HTTPS ports enabled for both IPv4 and IPv6."
-}
-else {
-    Write-Host "Invalid input. Please type 'yes' or 'no' to choose the environment."
-}
+    Write-Host "3) WinRM HTTPS ports enabled for both IPv4 and IPv6."
 
 
 
@@ -52,7 +45,7 @@ Set-Item WSMan:\localhost\Client\TrustedHosts -Value "*" -Force
 Write-Host "Setting up the automation User..."
 function Get-SecurePassword {
     param (
-        [string]$Prompt = "Enter a strong password for the user:"
+        [string]$Prompt = "Enter a strong password for the user "
     )
 
     $ValidPassword = $false
@@ -86,11 +79,15 @@ try {
 } catch {
     Write-Host "Error creating user: $_"
 }
+# !!!!!!! (dont give those group permissions to the user) Add user to Administrators and Remote Management Users groups (Optional) 
+ net localgroup Administrators $username /add #Dont do this in production
+# net localgroup "Remote Management Users" $username /add
 
 
-# Add user to Administrators and Remote Management Users groups
-net localgroup Administrators $username /add
-net localgroup "Remote Desktop Users" $username /add
+
+# If you are using Basic authentication i.e. Local usernames , then you need to set it as True using the following commands in Powershell (As admin)
+winrm set winrm/config/client/auth '@{Basic="true"}'
+winrm set winrm/config/service/auth '@{Basic="true"}'
 
 # UAC
 
