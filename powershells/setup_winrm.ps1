@@ -13,14 +13,14 @@ $environment = Read-Host "Are you using AWS? (Type 'yes' or 'no')"
 
 if ($environment -eq "yes") {
 	$Password = Read-Host "Enter the new password" -AsSecureString
+	$UserAccount = Get-LocalUser -Name "Administrator"
+   	$UserAccount | Set-LocalUser -Password $Password
 }
 elseif ($environment -eq "no") {
 	Write-Host "Check and persist a password with a no expiration date"
 }
 else {
     Write-Host "Invalid input. Please type 'yes' or 'no' to choose the environment."
-    $UserAccount = Get-LocalUser -Name "Administrator"
-    $UserAccount | Set-LocalUser -Password $Password
 }
 
 # Set WinRM service startup type to automatic
@@ -95,6 +95,7 @@ net localgroup "Remote Desktop Users" $username /add
 # UAC
 
 # Certificate management
+# Create Certificate
 $IPAddress = Read-Host "Enter Servers IP address WinRM"
 New-SelfSignedCertificate -DnsName $IPAddress -CertStoreLocation Cert:\LocalMachine\My
 # Extract thumbprint
@@ -152,7 +153,7 @@ function Export-CertificateByThumbprint {
     }
 }
 # Example usage: Export the certificate with the specified thumbprint
-#$thumbprintToExport = Read-Host "Enter the certificate thumbprint to export"
+#$thumbprintToExport = $Thumbprint
 #$exportFilePath = "C:\Users\Administrator\certificate.cer" # Change this to the desired export path
 #Export-CertificateByThumbprint -Thumbprint $thumbprintToExport -ExportFilePath $exportFilePath
 
@@ -203,15 +204,12 @@ function Remove-CertificateByThumbprint {
 # Configuring Winrm
 # Delete any old https listeners
 winrm delete winrm/config/listener?Address=*+Transport=HTTPS
+
+Write-Host "The ip address is $IPAddress && the Thumbprint of the Trusted CA is $Thumbprint"
 # Create Listener
-
-$Thumbprint = "9495B2312A0073A5D2ACDF60F57567AA705FEB29"
-
 # Configure WinRM to use HTTPS and create a listener
-winrm create winrm/config/Listener?Address=*+Transport=HTTPS `
-  @{Hostname="$IPAddress"; CertificateThumbprint="$Thumbprint"; Port="5986"}
-winrm create winrm/config/listener?Address=*+Transport=HTTPS '@{Hostname=`$IPAddress`;CertificateThumbprint="$Thumbprint";port="5986"}'
+winrm create winrm/config/listener?Address=*+Transport=HTTPS '@{Hostname="44.209.94.124";CertificateThumbprint="B941C50CF5F2D7FBD2E740714C5E6F584846F814";port="5986"}'
 
 
 # Restart the WinRM service
-Restart-Service WinRM
+	Restart-Service WinRM

@@ -1,5 +1,6 @@
 [windows]
 52.0.175.232
+44.209.94.124
 [windows:vars]
 ansible_user=Administrator 
 ansible_password=newusorALAs 113011ALAs3##2DDQ
