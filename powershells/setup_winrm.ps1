@@ -204,6 +204,12 @@ function Remove-CertificateByThumbprint {
 # Delete any old https listeners
 winrm delete winrm/config/listener?Address=*+Transport=HTTPS
 # Create Listener
+
+$Thumbprint = "9495B2312A0073A5D2ACDF60F57567AA705FEB29"
+
+# Configure WinRM to use HTTPS and create a listener
+winrm create winrm/config/Listener?Address=*+Transport=HTTPS `
+  @{Hostname="$IPAddress"; CertificateThumbprint="$Thumbprint"; Port="5986"}
 winrm create winrm/config/listener?Address=*+Transport=HTTPS '@{Hostname=`$IPAddress`;CertificateThumbprint="$Thumbprint";port="5986"}'
 
 

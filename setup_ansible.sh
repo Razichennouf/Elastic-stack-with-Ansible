@@ -5,4 +5,5 @@ sudo update-ca-certificates
 sudo apt update -y && apt upgrade -y
 sudo update-ca-certificates
 pip install -U ansible
+ansible-galaxy collection install ansible.windows
 pip install -U pywinrm
