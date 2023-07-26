@@ -1,0 +1,91 @@
+---
+- name: Patch SSH and Harden
+  hosts: all  # Replace 'all' with the appropriate target hosts or inventory group
+
+  tasks:
+    - name: Update package cache (apt)
+      become: yes
+      when: ansible_pkg_mgr == 'apt'
+      apt:
+        update_cache: yes
+
+    - name: Update package cache (yum)
+      become: yes
+      when: ansible_pkg_mgr == 'yum'
+      yum:
+        name: '*'
+        state: latest
+
+    - name: Install required packages
+      become: yes
+      package:
+        name: ['openssh-server', 'fail2ban', 'ufw']  # Adjust package names as per your distribution's package manager
+        state: latest
+
+    - name: Harden SSH configuration
+      become: yes
+      blockinfile:
+        path: /etc/ssh/sshd_config
+        marker: "# {mark} ANSIBLE MANAGED BLOCK"
+        block: |
+          # Disable root login
+          PermitRootLogin no
+
+          # Disable password authentication and use only public key authentication
+          PasswordAuthentication no
+          ChallengeResponseAuthentication no
+
+          # Set the allowed ciphers and MACs to improve security
+          Ciphers chacha20-poly1305@openssh.com,aes256-gcm@openssh.com,aes128-gcm@openssh.com,aes256-ctr,aes192-ctr,aes128-ctr
+          MACs hmac-sha2-512-etm@openssh.com,hmac-sha2-256-etm@openssh.com,hmac-sha2-512,hmac-sha2-256
+
+          # Allow only protocol version 2 (disable version 1)
+          Protocol 2
+
+          # Restrict SSH access to specific users (replace 'allowed_user' with the actual allowed user)
+          AllowUsers allowed_user
+
+          # Disable X11 forwarding if not required
+          X11Forwarding no
+
+      notify:
+        - restart sshd
+
+    - name: Enable and start the firewall (ufw)
+      become: yes
+      when: ansible_pkg_mgr == 'apt'  # Adjust this condition based on your distribution
+      service:
+        name: ufw
+        state: started
+        enabled: yes
+
+    - name: Configure firewall rules for SSH (ufw)
+      become: yes
+      when: ansible_pkg_mgr == 'apt'  # Adjust this condition based on your distribution
+      ufw:
+        rule: allow
+        name: SSH
+        proto: tcp
+
+    - name: Enable and start the firewall (firewalld)
+      become: yes
+      when: ansible_pkg_mgr == 'yum'  # Adjust this condition based on your distribution
+      service:
+        name: firewalld
+        state: started
+        enabled: yes
+
+    - name: Configure firewall rules for SSH (firewalld)
+      become: yes
+      when: ansible_pkg_mgr == 'yum'  # Adjust this condition based on your distribution
+      firewalld:
+        service: ssh
+        permanent: yes
+        state: enabled
+
+  handlers:
+    - name: restart sshd
+      become: yes
+      service:
+        name: sshd
+        state: restarted

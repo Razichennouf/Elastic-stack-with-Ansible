@@ -1,0 +1,4 @@
+---
+- name: deploy sysmon on windows
+  become: yes
+
