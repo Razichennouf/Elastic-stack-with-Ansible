@@ -1,0 +1,6 @@
+---
+- name: deploying sysmon on windows
+  become: t
+  hosts: windows
+  tasks:
+
