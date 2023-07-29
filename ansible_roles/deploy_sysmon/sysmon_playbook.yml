@@ -1,6 +1,6 @@
 ---
 - name: deploying sysmon on windows
-  #become: t in windows we dont user become: we use become_method: runas
+  #become: t # in windows we dont use become: we use become_method: runas
   hosts: windows
   tasks:
   - name: Get OS Architecture

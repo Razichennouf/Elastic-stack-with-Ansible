@@ -1,0 +1,6 @@
+---
+- name: Deploying ELK using Ansible
+  become: t
+  hosts: ubuntu
+  roles:
+    - deploy_ELK 
