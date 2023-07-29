@@ -101,4 +101,4 @@
       regex: '^#elasticsearch.hosts:'
       line: 'elasticsearch.hosts: ["http://localhost:9200"]'
   notify: restart_kibana
-# Looping onto ownership of ELK stack softwares directories and files
+# Directory layout
