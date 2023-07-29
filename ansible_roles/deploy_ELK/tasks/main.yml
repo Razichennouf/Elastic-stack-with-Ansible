@@ -36,3 +36,69 @@
   apt:
       name: nginx
       state: latest
+      
+# Configuring ELK 
+- name: Configuring Elasticsearch conf file {Cluster name}
+  lineinfile:
+      path: /etc/elasticsearch/elasticsearch.yml
+      regex: '^#cluster.name'
+      line: 'cluster.name: Cluster_ansi'
+- name: Configuring Elasticsearch conf file {xpack.monitoring.collection}
+  lineinfile:
+      path: /etc/elasticsearch/elasticsearch.yml
+      regex: '^#xpack.monitoring.collection.enabled:'
+      line: 'xpack.monitoring.collection.enabled: true'
+- name: Configuring Elasticsearch conf file {xpack.monitoring.elasticsearch.collection}
+  lineinfile:
+      path: /etc/elasticsearch/elasticsearch.yml
+      regex: '^#xpack.monitoring.elasticsearch.collection.enabled:'
+      line: 'xpack.monitoring.elasticsearch.collection.enabled: true'
+- name: Configuring Elasticsearch conf file {node.name}
+  lineinfile:
+      path: /etc/elasticsearch/elasticsearch.yml
+      regex: '^#node.name:'
+      line: 'node.name: node-1'
+- name: Configuring Elasticsearch conf file {network.host}
+  lineinfile:
+      path: /etc/elasticsearch/elasticsearch.yml
+      regex: '^#network.host:'
+      line: 'network.host: localhost'
+- name: Configuring Elasticsearch conf file {http.port}
+  lineinfile:
+      path: /etc/elasticsearch/elasticsearch.yml
+      regex: '^#http.port:'
+      line: 'http.port: 9200'
+- name: Configuring Elasticsearch conf file {transport.host} Allowing other Hosts that are not in same network to join the cluster 
+  lineinfile:
+      path: /etc/elasticsearch/elasticsearch.yml
+      regex: '^#transport.host:'
+      line: 'transport.host: 0.0.0.0'
+  notify: restart_elasticsearch
+
+- name: Configuring Kibana conf file {server.port}
+  lineinfile:
+      path: /etc/kibana/kibana.yml
+      regex: '^#server.port:'
+      line: 'server.port: 5601'
+- name: Configuring Kibana conf file {server.host}
+  lineinfile:
+      path: /etc/kibana/kibana.yml
+      regex: '^#server.host:'
+      line: 'server.host: 0.0.0.0'
+- name: Configuring Kibana conf file {server.publicBaseUrl}
+  lineinfile:
+      path: /etc/kibana/kibana.yml
+      regex: '^#server.publicBaseUrl:'
+      line: 'server.publicBaseUrl: "https://ansi-elk.duckdns.org"'
+- name: Configuring Kibana conf file {server.name}
+  lineinfile:
+      path: /etc/kibana/kibana.yml
+      regex: '^#server.name:'
+      line: 'server.name: "ansi-elk"'
+- name: Configuring Kibana conf file {elasticsearch.hosts}
+  lineinfile:
+      path: /etc/kibana/kibana.yml
+      regex: '^#elasticsearch.hosts:'
+      line: 'elasticsearch.hosts: ["http://localhost:9200"]'
+  notify: restart_kibana
+# Looping onto ownership of ELK stack softwares directories and files

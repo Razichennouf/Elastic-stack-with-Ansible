@@ -18,7 +18,7 @@ ansible_winrm_server_cert_validation=ignore
 #ansible_winrm_cert_pem=cert.pem
 #ansible_winrm_cert_key_pem=cert_key.pem
 [ubuntu]
-34.238.119.159
+54.172.30.156
 [ubuntu:vars]
 ansible_user=ubuntu  
 ansible_ssh_private_key_file=.keys/ansible.pem

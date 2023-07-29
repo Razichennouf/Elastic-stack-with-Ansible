@@ -4,3 +4,5 @@ ELK:
   - elasticsearch
   - kibana
   - logstash
+  - filebeat
+  - metricbeat
