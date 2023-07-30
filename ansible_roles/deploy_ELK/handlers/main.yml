@@ -2,11 +2,7 @@
 # handlers file for deploy_ELK
 - name: restart_kibana
   service:
-    name: kibana
+    name: "{{ item }}"
     state: restarted
     enabled: yes
-- name: restart_elasticsearch
-  service:
-    name: elasticsearch
-    state: restarted
-    enabled: yes
+  loop: "{{ ELK }}"

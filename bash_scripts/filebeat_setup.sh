@@ -19,7 +19,44 @@ filebeat keystore add ES_PWD
  password: "${ES_PWD}"
 
 # Enable the module to use for metric collection : for example we will collect metrics of system:
+
 sudo filebeat modules enable system
+- module: system
+  # Syslog
+  syslog:
+    enabled: true
+
+    # Set custom paths for the log files. If left empty,
+    # Filebeat will choose the paths depending on your OS.
+    #var.paths:
+
+  # Authorization logs
+  auth:
+    enabled: true
+
+# Enable nginx module and config file
+sudo filebeat modules enable nginx
+- module: nginx
+  # Access logs
+  access:
+    enabled: true
+    var.paths: ["/var/log/nginx/access.log*"]
+
+    # Set custom paths for the log files. If left empty,
+    # Filebeat will choose the paths depending on your OS.
+    #var.paths:
+
+  # Error logs
+  error:
+    enabled: true
+    var.paths: ["/var/log/nginx/error.log*"]
+
+
+# Enable elasticsearch cluster logs
+https://www.elastic.co/guide/en/beats/filebeat/8.9/filebeat-module-elasticsearch.html
 
 # After enabling the modules needed we have not to setup the filebeat to start collecting metrics :
 filebeat setup -e
+
+# Restart elasticsearch soft
+systemctl restart elasticsearch	
