@@ -74,6 +74,17 @@
       regex: '^#transport.host:'
       line: 'transport.host: 0.0.0.0'
   notify: restart_elasticsearch
+- name: Appending single-node parameter
+  lineinfile:
+      dest: /etc/elasticsearch/elasticsearch.yml
+      line: "discovery.type: single-node"
+- name: Removing the master-nodes list
+  lineinfile:
+      path: /etc/elasticsearch/elasticsearch.yml
+      regex: 'cluster.initial_master_nodes'
+      line: '#cluster.initial_master_nodes'
+      
+
 
 - name: Configuring Kibana conf file {server.port}
   lineinfile:
@@ -101,4 +112,11 @@
       regex: '^#elasticsearch.hosts:'
       line: 'elasticsearch.hosts: ["http://localhost:9200"]'
   notify: restart_kibana
+- name: "**************** Manual setup you have to do ******************"
+  debug:
+   	msg: 
+   	  - "Now you have to make these commands : "
+   	  - "Generate token from here => sudo /usr/share/elasticsearch/bin/elasticsearch-create-enrollment-token --scope kibana"
+   	  - "Get the verificationcode from here => sudo /usr/share/kibana/bin/kibana-verification-code"
+   	  - "Reset password for elastic user from here =>  sudo /usr/share/elasticsearch/bin/elasticsearch-reset-password -u elastic"
 # Directory layout
