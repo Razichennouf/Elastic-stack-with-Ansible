@@ -15,6 +15,21 @@
         post_reboot_delay: 30
         test_command: uptime
   when: reboot_required_file.stat.exists
+
+# Add-on tools
+- name: Installing Visualizing and provisioning tools 
+  package:
+      name: "{{ item }}"
+      state: latest
+  loop:
+    - nmon 
+    - glances
+    - iftop 
+    - atop 
+    - htop 
+    - dstat 
+    - smem
+
 - name: Import GPG key
   shell: |
        wget -qO - https://artifacts.elastic.co/GPG-KEY-elasticsearch | sudo apt-key add -
@@ -114,9 +129,9 @@
   notify: restart_kibana
 - name: "**************** Manual setup you have to do ******************"
   debug:
-   	msg: 
-   	  - "Now you have to make these commands : "
-   	  - "Generate token from here => sudo /usr/share/elasticsearch/bin/elasticsearch-create-enrollment-token --scope kibana"
-   	  - "Get the verificationcode from here => sudo /usr/share/kibana/bin/kibana-verification-code"
-   	  - "Reset password for elastic user from here =>  sudo /usr/share/elasticsearch/bin/elasticsearch-reset-password -u elastic"
+       msg: 
+          - "Now you have to make these commands : "
+          - "Generate token from here => sudo /usr/share/elasticsearch/bin/elasticsearch-create-enrollment-token --scope kibana"
+          - "Get the verificationcode from here => sudo /usr/share/kibana/bin/kibana-verification-code"
+          - "Reset password for elastic user from here =>  sudo /usr/share/elasticsearch/bin/elasticsearch-reset-password -u elastic"
 # Directory layout
