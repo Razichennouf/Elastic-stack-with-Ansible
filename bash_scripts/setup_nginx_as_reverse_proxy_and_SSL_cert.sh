@@ -1,3 +1,6 @@
+https://discuss.elastic.co/t/how-to-configure-kibana-behind-nginx-balancer/304654/2
+In ELK setting up a balancer is tricky and the  case. server.basePath asymetrically affects the URL. Meaning that all request URLs remain the same but response URLs have included the subdomin. For example, the kibana home page is still accessed at http://x.x.x.x:5601/app/kibana but all hrefs URLs include the subdomain /kibana4.
+
 # Put this block to the nginx configuration file
 """location / {
             proxy_pass http://localhost:5601;

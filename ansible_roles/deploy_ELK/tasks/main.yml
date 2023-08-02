@@ -83,11 +83,7 @@
       regex: '^#http.port:'
       line: 'http.port: 9200'
 - name: Put a line in a file
-  hosts: your_target_host
-  become: true
-  tasks:
-    - name: Add a line to the file
-      lineinfile:
+  lineinfile:
         path: /etc/elasticsearch/elasticsearch.yml
         line: "discovery.type: single-node"
         insertafter: EOF
@@ -101,8 +97,7 @@
   lineinfile:
       path: /etc/elasticsearch/elasticsearch.yml
       regex: '^cluster.initial_master_nodes'
-      line: '#cluster.initial_master_nodes'
-      
+      line: '#cluster.initial_master_nodes' 
 
 
 - name: Configuring Kibana conf file {server.port}
@@ -130,7 +125,22 @@
       path: /etc/kibana/kibana.yml
       regex: '^#elasticsearch.hosts:'
       line: 'elasticsearch.hosts: ["https://localhost:9200"]'
+
+# May not be needed becarefull please
+- name: Configuring Kibana conf to handle the reverse proxy requests {server.basePath}
+  lineinfile:
+      path: /etc/kibana/kibana.yml
+      regex: '^#server.basePath:'
+      line: 'server.basePath: "/login"'
+
+- name: Configuring Kibana conf to handle the reverse proxy requests {server.rewriteBasePath}
+  lineinfile:
+        path: /etc/elasticsearch/elasticsearch.yml
+        line: "server.rewriteBasePath: false"
+        insertafter: EOF
   notify: restart_ELK
+
+
 - name: "**************** Manual setup you have to do ******************"
   debug:
        msg: 
@@ -172,22 +182,17 @@
       path: /etc/nginx/sites-available/default
       regex: '^server_name _;'
       line: '#server_name _;'
-
 - name: Change content of location block in Nginx configuration
-  hosts: your_nginx_servers
-  become: true
-  tasks:
-    - name: Replace the content of location block
-      lineinfile:
-        path: /etc/nginx/nginx.conf
-        regexp: '^\s*location\s*/\s*{.*$'
-        line: |
-          location / {
-            proxy_pass http://localhost:5601;
-            proxy_http_version 1.1;
-            proxy_set_header Upgrade $http_upgrade;
-            proxy_set_header Connection 'upgrade';
-            proxy_set_header Host $host;
-            proxy_cache_bypass $http_upgrade;
-
-          }
+  lineinfile:
+    path: /etc/nginx/nginx.conf
+    regexp: '^\s*location\s*/\s*{.*$'
+    line: |
+      location / 
+      {
+      proxy_pass http://localhost:5601;
+      proxy_http_version 1.1;
+      proxy_set_header Upgrade $http_upgrade;
+      proxy_set_header Connection 'upgrade';
+      proxy_set_header Host $host;
+      proxy_cache_bypass $http_upgrade;
+      }
