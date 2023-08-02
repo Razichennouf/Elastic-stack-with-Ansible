@@ -54,7 +54,39 @@ sudo filebeat modules enable nginx
 
 # Enable elasticsearch cluster logs
 https://www.elastic.co/guide/en/beats/filebeat/8.9/filebeat-module-elasticsearch.html
+- module: elasticsearch
+  server:
+    enabled: true
+    var.paths:
+      - /var/log/elasticsearch/*.log          # Plain text logs
+      - /var/log/elasticsearch/*_server.json
 
+  gc:
+    enabled: true
+    var.paths:
+      - /var/log/elasticsearch/gc.log.[0-9]*
+      - /var/log/elasticsearch/gc.log
+
+  audit:
+    enabled: true
+    var.paths:
+      - /var/log/elasticsearch/*_access.log  # Plain text logs
+      - /var/log/elasticsearch/*_audit.json  # JSON logs
+
+  slowlog:
+    enabled: true
+    var.paths:
+      - /var/log/elasticsearch/*_index_search_slowlog.log     # Plain text logs
+      - /var/log/elasticsearch/*_index_indexing_slowlog.log   # Plain text logs
+      - /var/log/elasticsearch/*_index_search_slowlog.json    # JSON logs
+      - /var/log/elasticsearch/*_index_indexing_slowlog.json  # JSON logs
+ 
+
+  deprecation:
+    enabled: true
+    var.paths:
+      - /var/log/elasticsearch/*_deprecation.log   # Plain text logs
+      - /var/log/elasticsearch/*_deprecation.json  # JSON logs
 # After enabling the modules needed we have not to setup the filebeat to start collecting metrics :
 filebeat setup -e
 

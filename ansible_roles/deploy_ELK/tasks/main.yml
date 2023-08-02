@@ -129,7 +129,7 @@
   lineinfile:
       path: /etc/kibana/kibana.yml
       regex: '^#elasticsearch.hosts:'
-      line: 'elasticsearch.hosts: ["http://localhost:9200"]'
+      line: 'elasticsearch.hosts: ["https://localhost:9200"]'
   notify: restart_ELK
 - name: "**************** Manual setup you have to do ******************"
   debug:
