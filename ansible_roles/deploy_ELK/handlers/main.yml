@@ -1,6 +1,6 @@
 ---
 # handlers file for deploy_ELK
-- name: restart_kibana
+- name: restart_ELK
   service:
     name: "{{ item }}"
     state: restarted

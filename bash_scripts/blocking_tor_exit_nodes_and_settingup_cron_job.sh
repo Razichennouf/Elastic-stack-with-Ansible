@@ -1,7 +1,8 @@
 sudo crontab -e
-	0 12 * * * /usr/bin/certbot renew --quiet
 	@reboot sudo python3 /home/ubuntu/block_tor_network.py
 
+
+sudo apt install ipset
 
 import requests
 import subprocess

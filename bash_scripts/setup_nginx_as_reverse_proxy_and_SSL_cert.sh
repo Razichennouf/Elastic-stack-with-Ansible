@@ -9,10 +9,7 @@
           }
 """
 # Enable security group port 80
-# Get the token and enroll it to the shell console
-/usr/share/elasticsearch/bin/elasticsearch-create-enrollment-token --scope kibana
 
-# Install letsencrpy to secure the HTTP protocol
 sudo apt install certbot && sudo apt install python3-certbot-nginx
 
 # Adding these lines to the nginx server configuration file
@@ -23,3 +20,6 @@ server {
 
 # Deploy certificate using the certbot
 sudo certbot --nginx -d ansi-elk.duckdns.org -d www.ansi-elk.duckdns.org
+
+sudo crontab -e
+        0 12 * * * /usr/bin/certbot renew --quiet
