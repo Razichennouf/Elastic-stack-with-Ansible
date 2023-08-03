@@ -44,4 +44,4 @@
 # Managing winrm via powershell
 - name: Install and configure winrm and its components via powershell 
   ansible.windows.win_powershell:
-     script: ./files/setup_winrm.ps1 
+     script: ../files/setup_winrm.ps1 
