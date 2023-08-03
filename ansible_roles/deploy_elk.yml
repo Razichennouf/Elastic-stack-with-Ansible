@@ -1,5 +1,5 @@
 ---
-- name: Deploying ELK using Ansible
+- name: Deploying { Single-node } ELK
   become: t
   hosts: ubuntu
   roles:

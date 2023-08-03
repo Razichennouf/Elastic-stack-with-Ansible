@@ -50,7 +50,7 @@
   apt:
       name: nginx
       state: latest
-      
+
 # Configuring ELK 
 - name: Configuring Elasticsearch conf file {Cluster name}
   lineinfile:
@@ -82,7 +82,7 @@
       path: /etc/elasticsearch/elasticsearch.yml
       regex: '^#http.port:'
       line: 'http.port: 9200'
-- name: Put a line in a file
+- name: Setting up single-node
   lineinfile:
         path: /etc/elasticsearch/elasticsearch.yml
         line: "discovery.type: single-node"
@@ -93,11 +93,18 @@
       regex: '^#transport.host:'
       line: 'transport.host: 0.0.0.0'
   notify: restart_ELK
+- name: adding { http.port }
+  lineinfile:
+      path: /etc/elasticsearch/elasticsearch.yml
+      line: "http.host: 0.0.0.0"
+      insertafter: EOF
+
+
 - name: Removing the master-nodes list
   lineinfile:
       path: /etc/elasticsearch/elasticsearch.yml
       regex: '^cluster.initial_master_nodes'
-      line: '#cluster.initial_master_nodes' 
+      line: '#cluster.initial_master_nodes'
 
 
 - name: Configuring Kibana conf file {server.port}
@@ -114,6 +121,7 @@
   lineinfile:
       path: /etc/kibana/kibana.yml
       regex: '^#server.publicBaseUrl:'
+insertafter: EOF
       line: 'server.publicBaseUrl: "https://ansi-elk.duckdns.org"'
 - name: Configuring Kibana conf file {server.name}
   lineinfile:

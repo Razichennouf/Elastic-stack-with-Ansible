@@ -4,4 +4,4 @@ Put them in :  sudo vim /etc/kibana/kibana.yml :
 	xpack.reporting.encryptionKey: 3f48662ead2913f1901c86e5d4aae416
 	xpack.security.encryptionKey: 821e5635dc2742057aee7f4f894dc90b
 
-Secure saved objects
+Secure saved objects : xpack.encryptedSavedObjects.encryptionKey is not configured, private key passphrase is being stored in plain text
