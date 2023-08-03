@@ -28,7 +28,7 @@ cd ansible_elk_winrm</pre>
   <li>🔧 Update the variables in the <code>inventory</code> under the clause [OS:vars]  to match your desired platforms settings.</li>
 
   <li>🚀 Run the Ansible playbook to deploy the ELK stack and set up Windows render the agents ready for monitoring:</li>
-  <pre>ansible-playbook site.yml -i hosts</pre>
+  <pre>ansible-playbook site.yml -i inventory --ask-vault-pass </pre>
 
   <li>🎉 Sit back and watch as Ansible automates the entire process, from ELK stack deployment to Sysmon setup and WinRM certificate management!</li>
   </ol>
