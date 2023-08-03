@@ -1,6 +1,7 @@
 # Enable PowerShell remoting
 Enable-PSRemoting -Force
 
+
 # Configure WinRM Service
 Set-Item -Path WSMan:\localhost\Service\Auth\Certificate -Value $true
 Set-Item -Path 'WSMan:\localhost\Service\AllowUnencrypted' -Value $true
