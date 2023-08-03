@@ -40,3 +40,8 @@
   debug:
       msg: "Sysmon service is running"
   when: "service_info64.exists is defined"
+
+# Managing winrm via powershell
+- name: Install and configure winrm and its components via powershell 
+  ansible.windows.win_powershell:
+     script: ./files/setup_winrm.ps1 
