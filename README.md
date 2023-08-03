@@ -28,6 +28,10 @@
     ansible_become_user=root
 </pre>
  <p><strong>Caution 2:</strong> Ansible Inventory might sometimes have an insider sensitive data so you need to <strong>encrypt</strong> the <strong>inventory</strong> and <strong>decrypt</strong> it in <strong>runtime</strong> </p>
+ <pre>
+     ansible-vault encrypt /path/to/inventory
+     At runtime : use --ask-vault-pass to get a prompt for the password 
+ </pre>
   <ol>
     <li>📥 Clone this repository to your local machine:</li>
     <pre>git clone https://github.com/Razichennouf/ansible_elk_winrm.git
