@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <body>
-  <h1>🚀 ELK Stack Deployment and Windows Agent setup Driven by Automation using <strong>Ansible</strong> 🛡️</h1>
+  <h1>🚀 Single-node ELK Stack Deployment and Windows Agent setup Driven by Automation using <strong>Ansible</strong> 🛡️</h1>
 
   <p>
     This project automates the deployment of the ELK (Elasticsearch, Logstash, Kibana) stack on Linux servers and sets up
