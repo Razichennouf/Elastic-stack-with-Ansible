@@ -7,13 +7,6 @@ Under default (website path) /etc/nginx/sites-available/default:
 		Under server block:
 	        server_name "ansi-elk.duckdns.org" "www.ansi-elk.duckdns.org";
 		 location / {
-        		proxy_pass http://localhost:5601;
-            		proxy_http_version 1.1;
-            		proxy_set_header Upgrade $http_upgrade;
-            		proxy_set_header Connection 'upgrade';
-            		proxy_set_header Host $host;
-            		proxy_cache_bypass $http_upgrade;
-          			}
 			#add_header Content-Security-Policy "default-src 'self'; script-src>
 			 add_header X-XSS-Protection "1; mode=block";
          		 add_header X-Frame-Options "SAMEORIGIN";
@@ -23,6 +16,6 @@ Under default (website path) /etc/nginx/sites-available/default:
        			 add_header Strict-Transport-Security "max-age=31536000";
 			 #Performance
 		          #limit_req zone=req_zone burst=10 nodelay;
-
+		  }
 
 
