@@ -16,8 +16,38 @@
     <li>🔐 <strong>WinRM Certificate Management</strong>: Automates the creation and management of WinRM certificates on Windows machines, securing remote management channels with encrypted communication.</li>
     <li>👤 <strong>User Management</strong>: Sets up dedicated automation users on Windows machines for executing remote tasks securely.</li>
   </ul>
+    <h1>Windows WinRM Deployment Guide</h1>
+    <p>Welcome to the Windows WinRM Deployment Guide. This guide will walk you through the steps to enable WinRM (Windows Remote Management) on your Windows instances, allowing for secure remote access and automation.</p>
 
-  <h2>How to Use:</h2>
+  <h2>Important Note for AWS Users</h2>
+    <p>If you are deploying WinRM on AWS instances, it's crucial to statically change the Administrator password to ensure security. Follow these steps to set a new password securely:</p>
+  <ol>
+        <li>Start by obtaining the private key associated with your AWS instance.</li>
+        <li>Open a PowerShell session on your local machine.</li>
+        <li>Execute the following commands, replacing &lt;private_key_path&gt; with the path to your private key file:</li>
+    </ol>
+  <pre>
+        <code>
+            $Password = Read-Host "Enter the new password" -AsSecureString
+            $UserAccount = Get-LocalUser -Name "Administrator"
+            $UserAccount | Set-LocalUser -Password $Password
+        </code>
+    </pre>
+  <p>This will set a new password for the default user 'Administrator' on your AWS instance.</p>
+
+  <h2>Using Elastic IPs</h2>
+  <p>For users deploying WinRM on AWS or similar cloud platforms, it is highly recommended to use Elastic IPs (EIPs). Elastic IPs provide a static public IP address that remains associated with your instance, even after stopping and starting it. This prevents potential conflicts and connectivity issues that may arise due to dynamic IP address changes.</p>
+  <p>To assign an Elastic IP to your instance:</p>
+   <ol>
+      <li>Go to your cloud provider's management console.</li>
+      <li>Allocate a new Elastic IP.</li>
+      <li>Associate the Elastic IP with your instance, ensuring a stable and reliable connection.</li>
+   </ol>
+  <p>By following these steps and using Elastic IPs, you can avoid interruptions and connectivity problems when working with your WinRM-enabled Windows instances.</p>
+
+  <p>Please note that this guide assumes a basic familiarity with Windows and PowerShell. If you encounter any issues or have questions, don't hesitate to seek assistance from your system administrator or support resources.</p>
+
+   <p>Let's get started!</p>
   <p><strong>Caution 1:</strong> Ansible works differently on Windows and Linux systems, and the 'become' methods for privilege escalation are different. To ensure proper execution, you need to define the 'ansible_become_method' and 'ansible_become_user' variables in your inventory file as follows:</p>
 <pre>
     [windows:vars]
