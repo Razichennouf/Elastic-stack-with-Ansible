@@ -1,4 +1,6 @@
 ---
 - name: deploy sysmon on windows
-  become: yes
-
+  hosts: windows
+  tasks:
+  - name: pinging windows
+    win_ping:
