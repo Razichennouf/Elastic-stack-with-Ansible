@@ -220,6 +220,16 @@ insertafter: EOF
   shell : |
   	certbot --nginx -d ansi-elk.duckdns.org -d www.ansi-elk.duckdns.org
 - name: Deploying a cron job for certificate renewal { Let's encrypt }
-	
+  cron:
+      name: Let's encrypt SSL Certificate Renewal
+      state: present
+      user: root
+      minute: 0
+      hour: 12
+      day: *
+      weekday: *
+      month: *
+      job: /usr/bin/certbot renew --quiet
+      	
   
 	
