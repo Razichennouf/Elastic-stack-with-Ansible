@@ -26,11 +26,11 @@
         <li>Open a PowerShell session on your local machine.</li>
         <li>Execute the following commands, replacing &lt;private_key_path&gt; with the path to your private key file:</li>
     </ol>
-  <pre> <code>
+  <code>
             $Password = Read-Host "Enter the new password" -AsSecureString
             $UserAccount = Get-LocalUser -Name "Administrator"
             $UserAccount | Set-LocalUser -Password $Password
-        </code> </pre>
+        </pre>
   <p>This will set a new password for the default user 'Administrator' on your AWS instance.</p>
 
   <h2>Using Elastic IPs</h2>
