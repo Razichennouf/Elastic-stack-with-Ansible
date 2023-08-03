@@ -20,14 +20,14 @@
   <h2>How to Use:</h2>
   <ol>
     <li>📥 Clone this repository to your local machine:</li>
-    <pre>git clone https://github.com/your-username/ansible-elk-stack.git
-cd ansible-elk-stack</pre>
+    <pre>git clone https://github.com/Razichennouf/ansible_elk_winrm.git
+cd ansible_elk_winrm</pre>
 
-  <li>⚙️ Update the inventory file (<code>hosts</code>) to include the IP addresses or hostnames of your target servers. Make sure to differentiate between Linux and Windows machines in separate groups.</li>
+  <li>⚙️ Update the inventory file (<code>inventory</code>) to include the IP addresses or hostnames of your target servers. Make sure to differentiate between Linux and Windows machines in separate groups.</li>
 
-  <li>🔧 Update the variables in the <code>vars/</code> directory to match your desired ELK stack and Sysmon configuration settings.</li>
+  <li>🔧 Update the variables in the <code>inventory</code> under the clause [OS:vars]  to match your desired platforms settings.</li>
 
-  <li>🚀 Run the Ansible playbook to deploy the ELK stack and set up Windows security monitoring:</li>
+  <li>🚀 Run the Ansible playbook to deploy the ELK stack and set up Windows render the agents ready for monitoring:</li>
   <pre>ansible-playbook site.yml -i hosts</pre>
 
   <li>🎉 Sit back and watch as Ansible automates the entire process, from ELK stack deployment to Sysmon setup and WinRM certificate management!</li>
