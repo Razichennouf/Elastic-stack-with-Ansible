@@ -55,8 +55,10 @@
 </pre>
  <p><strong>Caution 2:</strong> Ansible Inventory might sometimes have an insider sensitive data so you need to <strong>encrypt</strong> the <strong>inventory</strong> and <strong>decrypt</strong> it in <strong>runtime</strong> </p>
  <pre>
-     ansible-vault encrypt /path/to/inventory
-     At runtime : use <strong>--ask-vault-pass</strong> to get a prompt for the password  </pre>
+     - At runtime : use <strong>--ask-vault-pass</strong> to get a prompt for the password  
+         $ ansible-vault encrypt /path/to/inventory
+     - If you want to go the other way without encrypting the whole inventory we will use the command ansible-vault and then specify it inside the ansible inventory but only when its in YAML format
+         $ ansible-vault encrypt_string --vault-id $my_user@prompt 'ansible_password' --name 'ansible_password'</pre>
   <ol>
     <li>📥 Clone this repository to your local machine:</li>
     <pre>git clone https://github.com/Razichennouf/ansible_elk_winrm.git
