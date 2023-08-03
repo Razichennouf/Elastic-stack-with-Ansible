@@ -18,6 +18,17 @@
   </ul>
 
   <h2>How to Use:</h2>
+  <p><strong>Caution 1:</strong> Ansible works differently on Windows and Linux systems, and the 'become' methods for privilege escalation are different. To ensure proper execution, you need to define the 'ansible_become_method' and 'ansible_become_user' variables in your inventory file as follows:</p>
+
+<pre>
+    [windows:vars]
+    ansible_become_method=runas
+    ansible_become_user=Administrator
+    [ubuntu:vars]
+    ansible_become_method=sudo
+    ansible_become_user=root
+</pre>
+
   <ol>
     <li>📥 Clone this repository to your local machine:</li>
     <pre>git clone https://github.com/Razichennouf/ansible_elk_winrm.git
