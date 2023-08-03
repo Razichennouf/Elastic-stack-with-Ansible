@@ -17,14 +17,13 @@
     <li>👤 <strong>User Management</strong>: Sets up dedicated automation users on Windows machines for executing remote tasks securely.</li>
   </ul>
     <h1>Windows WinRM Deployment Guide</h1>
-    <p>Welcome to the Windows WinRM Deployment Guide. This guide will walk you through the steps to enable WinRM (Windows Remote Management) on your Windows instances, allowing for secure remote access and automation.</p>
 
   <h2>Important Note for AWS Users</h2>
     <p>If you are deploying WinRM on AWS instances, it's crucial to statically change the Administrator password to ensure security. Follow these steps to set a new password securely:</p>
   <ol>
         <li>Start by obtaining the private key associated with your AWS instance.</li>
         <li>Open a PowerShell session on your local machine.</li>
-        <li>Execute the following commands, replacing &lt;private_key_path&gt; with the path to your private key file:</li>
+        <li>Execute the following commands :</li>
     </ol>
   <pre>
             $Password = Read-Host "Enter the new password" -AsSecureString
