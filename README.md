@@ -30,7 +30,7 @@
             $Password = Read-Host "Enter the new password" -AsSecureString
             $UserAccount = Get-LocalUser -Name "Administrator"
             $UserAccount | Set-LocalUser -Password $Password
-        </pre>
+        </code>
   <p>This will set a new password for the default user 'Administrator' on your AWS instance.</p>
 
   <h2>Using Elastic IPs</h2>
