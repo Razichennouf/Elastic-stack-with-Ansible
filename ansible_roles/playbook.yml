@@ -1,11 +1,20 @@
 - name: dep
   hosts: ubuntu
+  gather_facts: n
   vars_files:
       - vault.yml
   tasks:
+  - name: Chaning elastic password
+    shell: |
+       yes | sudo /usr/share/elasticsearch/bin/elasticsearch-reset-password -u test | grep -oP 'New value: \K.*' > /home/ubuntu/elastic_pw
+       chmod 600 elastic_pw
+  - name: retrieve the elastic_pw value
+    slurp:
+       src: /home/ubuntu/elastic_pw
+    register: elastic_pw_val
   - name: dep
     shell: |
-      curl -k -H "Content-Type: application/json" -XPUT https://localhost:9200/*/_settings -d '{ "index" : { "number_of_replicas" : 0 } }' -u elastic:"{{ elastic_pw }}"
+      curl -k -H "Content-Type: application/json" -XPUT https://localhost:9200/*/_settings -d '{ "index" : { "number_of_replicas" : 0 } }' -u elastic:"{{ elastic_pw_val.content | b64decode }}"
     register: curl_res
   - name: Printing results
     debug:
