@@ -26,9 +26,9 @@
         <li>Execute the following commands :</li>
     </ol>
   <pre>
-            $Password = Read-Host "Enter the new password" -AsSecureString
-            $UserAccount = Get-LocalUser -Name "Administrator"
-            $UserAccount | Set-LocalUser -Password $Password
+    $Password = Read-Host "Enter the new password" -AsSecureString
+    $UserAccount = Get-LocalUser -Name "Administrator"
+    $UserAccount | Set-LocalUser -Password $Password
         </pre>
   <p>This will set a new password for the default user 'Administrator' on your AWS instance.</p>
 
