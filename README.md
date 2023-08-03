@@ -43,7 +43,7 @@
   <p>By following these steps and using Elastic IPs, you can avoid interruptions and connectivity problems when working with your WinRM-enabled Windows instances.</p>
 
   <p>Please note that this guide assumes a basic familiarity with Windows and PowerShell. If you encounter any issues or have questions, don't hesitate to seek assistance from your system administrator or support resources.</p>
-
+ <p><strong>Caution 0:</strong> I'm using ansible vault.yml for the sensitive data inside the plays and also the same password for the encryption of the inventory file so in runtime we could decrypt both with same password without conflicts </p>
   <p><strong>Caution 1:</strong> Ansible works differently on Windows and Linux systems, and the 'become' methods for privilege escalation are different. To ensure proper execution, you need to define the 'ansible_become_method' and 'ansible_become_user' variables in your inventory file as follows:</p>
 <pre>
     [windows:vars]
