@@ -51,7 +51,10 @@
   loop: "{{ ELK }}"
 - name: Installing NGINX Webserver
   apt:
-      name: nginx
+      name: 
+         - nginx
+         - certbot 
+         - python3-certbot-nginx
       state: latest
 
 # Configuring ELK 
@@ -149,7 +152,6 @@ insertafter: EOF
        chmod 600 elastic_pw
     #'/New value:/ {print $NF}' output.txt
     #sed -n 's/New value: //p' output.txt
-
   - name: retrieve the elastic_pw value
     slurp:
        src: /home/ubuntu/elastic_pw
@@ -203,49 +205,15 @@ insertafter: EOF
 #
 #
 #
-
-- name: Configuring nginx default conf file
-  lineinfile:
-      path: /etc/nginx/sites-available/default
-      regex: '^listen 80 default_server;'
-      line: '#listen 80 default_server;'
-
-- name: Configuring nginx default conf file
-  lineinfile:
-      path: /etc/nginx/sites-available/default
-      regex: '^listen 80 default_server;'
-      line: '#listen 80 default_server;'
-- name: Configuring nginx default conf file
-  lineinfile:
-      path: /etc/nginx/sites-available/default
-      regex: '^listen [::]:80 default_server;'
-      line: '#listen [::]:80 default_server;'
-- name: Configuring nginx default conf file
-  lineinfile:
-      path: /etc/nginx/sites-available/default
-      regex: '^root /var/www/html;'
-      line: '#root /var/www/html;'
-- name: Configuring nginx default conf file
-  lineinfile:
-      path: /etc/nginx/sites-available/default
-      regex: '^index index.html index.htm index.nginx-debian.html;'
-      line: '#index index.html index.htm index.nginx-debian.html;'
-- name: Configuring nginx default conf file
-  lineinfile:
-      path: /etc/nginx/sites-available/default
-      regex: '^server_name _;'
-      line: '#server_name _;'
-- name: Change content of location block in Nginx configuration
-  lineinfile:
-    path: /etc/nginx/nginx.conf
-    regexp: '^\s*location\s*/\s*{.*$'
-    line: |
-      location / 
-      {
-      proxy_pass http://localhost:5601;
-      proxy_http_version 1.1;
-      proxy_set_header Upgrade $http_upgrade;
-      proxy_set_header Connection 'upgrade';
-      proxy_set_header Host $host;
-      proxy_cache_bypass $http_upgrade;
-      }
+- name: Copy and render Nginx configuration file
+     template:
+        src: role_deploy_ELK/templates/default.j2 
+        dest: /etc/nginx/sites-available/default
+	mode: '0644'
+	
+- name: Securing nginx with additional header layers of security
+  template:
+        src: role_deploy_ELK/templates/nginx.j2 
+        dest: /etc/nginx/nginx.conf
+	mode: '0644'
+	
