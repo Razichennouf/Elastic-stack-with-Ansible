@@ -3,44 +3,6 @@
   #become: t # in windows we dont use become: we use become_method: runas
   hosts: windows
   tasks:
-  - name: Get OS Architecture
-    win_shell: |
-        $osArchitecture = (Get-WmiObject -Class Win32_OperatingSystem).OSArchitecture
-        Write-Host "OS Architecture: $osArchitecture"
-    register: os_arch_result
-  - name: Downloading SYSMON
-    ansible.windows.win_get_url:
-        url: https://download.sysinternals.com/files/Sysmon.zip
-        dest: C:\sysmon.zip
-  - name: Unzipping SYSMON.ZIP
-    community.windows.win_unzip:
-        src: C:\sysmon.zip
-        dest: C:\sysmon
-          #recurse: yes
-  - name: Get info about SYSMON 32
-    ansible.windows.win_service_info:
-        name: Sysmon32
-    register: service_info32
-  - name: Get info about SYSMON 64
-    ansible.windows.win_service_info:
-        name: Sysmon64
-    register: service_info64
+  roles:
+     - role_deploy_SYSMON
 
-  - name: Install SYSMON and persisting it as a service in 32-bit archs
-    ansible.windows.win_command:
-         chdir: C:\sysmon
-         cmd: sysmon.exe -i -n -accepteula
-    when:
-        - "'OS Architecture: 32-bit' in os_arch_result.stdout_lines"
-        - "service_info32.exists is not defined"
-  - name: Install SYSMON and persisting it as a service in 64-bit archs
-    ansible.windows.win_command:
-         chdir: C:\sysmon
-         cmd: sysmon64.exe -i -n -accepteula
-    when:
-        - "'OS Architecture: 64-bit' in os_arch_result.stdout_lines"
-        - "service_info64.exists is not defined"
-  - name: Check if Sysmon service is running
-    debug:
-        msg: "Sysmon service is running"
-    when: "service_info64.exists is defined"

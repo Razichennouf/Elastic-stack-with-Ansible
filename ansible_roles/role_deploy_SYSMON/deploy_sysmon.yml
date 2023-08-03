@@ -1,6 +1,0 @@
----
-- name: deploy sysmon on windows
-  hosts: windows
-  tasks:
-  - name: pinging windows
-    win_ping:
