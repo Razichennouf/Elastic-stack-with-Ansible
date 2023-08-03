@@ -15,7 +15,7 @@ $environment = Read-Host "Are you using AWS? (Type 'yes' or 'no')"
 if ($environment -eq "yes") {
 	$Password = Read-Host "Enter the new password" -AsSecureString
 	$UserAccount = Get-LocalUser -Name "Administrator"
-   	$UserAccount | Set-LocalUser -Password $Password
+	$UserAccount | Set-LocalUser -Password $Password
 }
 elseif ($environment -eq "no") {
 	Write-Host "Check and persist a password with a no expiration date"
