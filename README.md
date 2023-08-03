@@ -12,7 +12,7 @@
   <h2>Features:</h2>
   <ul>
     <li>📈 <strong>ELK Stack Deployment</strong>: Automates the installation and configuration of Elasticsearch, Logstash, and Kibana on Linux servers, providing a powerful platform for log aggregation, analysis, and visualization.</li>
-    <li>🔒 <strong>Windows Security Monitoring</strong>: Deploys Sysmon on Windows machines, a powerful system monitoring tool from Microsoft's Sysinternals suite, to monitor and record security-related events for enhanced incident detection.</li>
+    <li>🔒 <strong>Windows Monitoring component </strong>: Deploys Sysmon on Windows machines, a powerful system monitoring tool from Microsoft's Sysinternals suite, to monitor and record security-related events for enhanced incident detection.</li>
     <li>🔐 <strong>WinRM Certificate Management</strong>: Automates the creation and management of WinRM certificates on Windows machines, securing remote management channels with encrypted communication.</li>
     <li>👤 <strong>User Management</strong>: Sets up dedicated automation users on Windows machines for executing remote tasks securely.</li>
   </ul>
