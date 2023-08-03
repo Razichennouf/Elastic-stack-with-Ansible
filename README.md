@@ -26,13 +26,11 @@
         <li>Open a PowerShell session on your local machine.</li>
         <li>Execute the following commands, replacing &lt;private_key_path&gt; with the path to your private key file:</li>
     </ol>
-  <pre>
-        <code>
+  <pre> <code>
             $Password = Read-Host "Enter the new password" -AsSecureString
             $UserAccount = Get-LocalUser -Name "Administrator"
             $UserAccount | Set-LocalUser -Password $Password
-        </code>
-    </pre>
+        </code> </pre>
   <p>This will set a new password for the default user 'Administrator' on your AWS instance.</p>
 
   <h2>Using Elastic IPs</h2>
@@ -47,7 +45,6 @@
 
   <p>Please note that this guide assumes a basic familiarity with Windows and PowerShell. If you encounter any issues or have questions, don't hesitate to seek assistance from your system administrator or support resources.</p>
 
-   <p>Let's get started!</p>
   <p><strong>Caution 1:</strong> Ansible works differently on Windows and Linux systems, and the 'become' methods for privilege escalation are different. To ensure proper execution, you need to define the 'ansible_become_method' and 'ansible_become_user' variables in your inventory file as follows:</p>
 <pre>
     [windows:vars]
