@@ -20,4 +20,4 @@
 
 ---
 
-<p align="center"><em>This README is a part of the PowerShell WinRM Configuration project. For more details, please refer to the source code and documentation.</em></p>
+<p align="center"><em>This README is a part of the PowerShell WinRM Configuration.</em></p>
