@@ -101,20 +101,19 @@
       path: /etc/elasticsearch/elasticsearch.yml
       regex: '^#transport.host:'
       line: 'transport.host: 0.0.0.0'
-  notify: restart_ELK
+
 - name: adding { http.port }
   lineinfile:
       path: /etc/elasticsearch/elasticsearch.yml
       line: "http.host: 0.0.0.0"
-      insertafter: EOF
-
+      notify: restart_ELK
 
 - name: Removing the master-nodes list
   lineinfile:
       path: /etc/elasticsearch/elasticsearch.yml
       regex: '^cluster.initial_master_nodes'
       line: '#cluster.initial_master_nodes'
-
+      insertafter: EOF
 
 - name: Configuring Kibana conf file {server.port}
   lineinfile:
@@ -142,9 +141,24 @@ insertafter: EOF
       path: /etc/kibana/kibana.yml
       regex: '^#elasticsearch.hosts:'
       line: 'elasticsearch.hosts: ["https://localhost:9200"]'
-  notify: restart_ELK
+  
 
+- name: Generate the 3 keys
+  shell: |
+	/usr/share/kibana/bin/kibana-encryption-keys generate --force | grep -A 3 "Settings:" | grep -v "Settings:" > /home/ubuntu/params_xpack
+	chmod 600 /home/ubuntu/params_xpack	
+- name: retrieve the keys with xpack params
+    slurp:
+       src: /home/ubuntu/params_xpack
+    register: params_xpack
 
+- name: Inserting params
+  lineinfile:
+      path: /etc/kibana/kibana.yml
+      line: "{{ params_xpack.content | b64decode }}"
+      insertafter: EOF
+  notify: restart_ELK      
+  
 # Changing elastic password and saving it in the current directory for later use in 600 mode
 - name: Chaning elastic password
     shell: |
