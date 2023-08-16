@@ -141,12 +141,12 @@ insertafter: EOF
       path: /etc/kibana/kibana.yml
       regex: '^#elasticsearch.hosts:'
       line: 'elasticsearch.hosts: ["https://localhost:9200"]'
-  
+
 
 - name: Generate the 3 keys
   shell: |
-	/usr/share/kibana/bin/kibana-encryption-keys generate --force | grep -A 3 "Settings:" | grep -v "Settings:" > /home/ubuntu/params_xpack
-	chmod 600 /home/ubuntu/params_xpack	
+        /usr/share/kibana/bin/kibana-encryption-keys generate --force | grep -A 3 "Settings:" | grep -v "Settings:" > /home/ubuntu/params_xpack
+        chmod 600 /home/ubuntu/params_xpack
 - name: retrieve the keys with xpack params
     slurp:
        src: /home/ubuntu/params_xpack
@@ -157,8 +157,8 @@ insertafter: EOF
       path: /etc/kibana/kibana.yml
       line: "{{ params_xpack.content | b64decode }}"
       insertafter: EOF
-  notify: restart_ELK      
-  
+  notify: restart_ELK
+
 # Changing elastic password and saving it in the current directory for later use in 600 mode
 - name: Chaning elastic password
     shell: |
@@ -177,7 +177,7 @@ insertafter: EOF
 #
 - name: Setting up number_of_replicas to 0 via API call
   shell: |
-  	curl -k -H "Content-Type: application/json" -XPUT https://localhost:9200/*/_settings -d '{ "index" : { "number_of_replicas" : 0 } }' -u elastic:"{{ elastic_pw_val.content | b64decode }}"
+       curl -k -H "Content-Type: application/json" -XPUT https://localhost:9200/*/_settings -d '{ "index" : { "number_of_replicas" : 0 } }' -u elastic:"{{ elastic_pw_val.content | b64decode }}"
   register: curl_res
 - name: Printing results
   debug:
@@ -195,7 +195,7 @@ insertafter: EOF
         path: /etc/elasticsearch/elasticsearch.yml
         line: "server.rewriteBasePath: false"
         insertafter: EOF
-  notify: restart_ELK    
+  notify: restart_ELK
 
 # Manual setup with manual guidance
 #
@@ -223,16 +223,16 @@ insertafter: EOF
      template:
         src: role_deploy_ELK/templates/default.j2 
         dest: /etc/nginx/sites-available/default
-	mode: '0644'
-	
+        mode: '0644'
+
 - name: Securing nginx with additional header layers of security
   template:
         src: role_deploy_ELK/templates/nginx.j2 
         dest: /etc/nginx/nginx.conf
-	mode: '0644'
+        mode: '0644'
 - name: Adding SSL certificate to NGINX via certbot tool
   shell : |
-  	certbot --nginx -d ansi-elk.duckdns.org -d www.ansi-elk.duckdns.org
+       certbot --nginx -d ansi-elk.duckdns.org -d www.ansi-elk.duckdns.org
 - name: Deploying a cron job for certificate renewal { Let's encrypt }
   cron:
       name: Let's encrypt SSL Certificate Renewal
@@ -244,7 +244,7 @@ insertafter: EOF
       weekday: *
       month: *
       job: /usr/bin/certbot renew --quiet
-      	
+
 - name: Fixing and redirecting the traffic from IpAddress to Domain name
   lineinfile:
         path: /etc/nginx/sites-available/default
