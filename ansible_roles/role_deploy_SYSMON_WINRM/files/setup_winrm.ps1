@@ -2,11 +2,22 @@
 Enable-PSRemoting -Force
 
 
-# Configure WinRM Service
-Set-Item -Path 'WSMan:\localhost\Service\Auth\Certificate' -Value $true
-Set-Item -Path 'WSMan:\localhost\Service\AllowUnencrypted' -Value $true
-Set-Item -Path 'WSMan:\localhost\Service\Auth\Basic' -Value $true
-Set-Item -Path 'WSMan:\localhost\Service\Auth\CredSSP' -Value $true
+# Configure WinRM Client (More secure block "client" auths)
+	Set-Item -Path 'WSMan:\localhost\Client\Auth\Certificate' -Value $false
+	Set-Item -Path 'WSMan:\localhost\Client\AllowUnencrypted' -Value $false
+	Set-Item -Path 'WSMan:\localhost\Client\Auth\Basic' -Value $false
+	Set-Item -Path 'WSMan:\localhost\Client\Auth\CredSSP' -Value $false
+	Set-Item -Path 'WSMan:\localhost\Client\Auth\Kerberos' -Value $false
+# Configure WinRM Service 
+	Set-Item -Path 'WSMan:\localhost\Service\Auth\Certificate' -Value $false
+	Set-Item -Path 'WSMan:\localhost\Service\AllowUnencrypted' -Value $false
+	Set-Item -Path 'WSMan:\localhost\Service\Auth\Basic' -Value $true
+	Set-Item -Path 'WSMan:\localhost\Service\Auth\CredSSP' -Value $true
+	Set-Item -Path 'WSMan:\localhost\Service\Auth\Kerberos' -Value $false
+
+# If you are using Basic authentication i.e. Local usernames , then you need to set it as True using the following commands in Powershell (As admin)
+#winrm set winrm/config/client/auth '@{Basic="true"}'
+#winrm set winrm/config/service/auth '@{Basic="true"}'
 
 # If you are using the AWS and you have a fresh instance the password of the default user `Administrator` is generated temporarly with the private key
 # So if you have a fresh instance we need to persist a new password securely
@@ -33,7 +44,8 @@ Set-Service WinRM -StartupType 'Automatic'
     # Enabling WinRM ports for both IPv4 and IPv6 using New-NetFirewallRule
     Write-Host "2) Enabling WinRM ports for both IPv4 and IPv6 on the local server..."
     New-NetFirewallRule -DisplayName "Allow WinRM HTTPS IPv4" -Direction Inbound -LocalPort 5986 -Protocol TCP -Action Allow
-    New-NetFirewallRule -DisplayName "Allow WinRM HTTPS IPv6" -Direction Inbound -LocalPort 5986 -Protocol TCP -Action Allow -LocalAddress ::/0
+    # Later to fix we need to enable IPV6 because somme softwares needs IPV6 to work
+	#New-NetFirewallRule -DisplayName "Allow WinRM HTTPS IPv6" -Direction Inbound -LocalPort 5986 -Protocol TCP -Action Allow -LocalAddress ::/0
     Write-Host "3) WinRM HTTPS ports enabled for both IPv4 and IPv6."
 
 
@@ -85,11 +97,6 @@ try {
 # net localgroup "Remote Management Users" $username /add
 
 
-
-# If you are using Basic authentication i.e. Local usernames , then you need to set it as True using the following commands in Powershell (As admin)
-winrm set winrm/config/client/auth '@{Basic="true"}'
-winrm set winrm/config/service/auth '@{Basic="true"}'
-
 # UAC
 
 # Certificate management
@@ -130,7 +137,7 @@ function Get-Certificates {
         Write-Host "No certificates found in the LocalMachine\My store."
     }
 }
-# Get-Certificates
+ Get-Certificates
 
 # Export certificate from a thumbprint
 function Export-CertificateByThumbprint {
@@ -151,9 +158,9 @@ function Export-CertificateByThumbprint {
     }
 }
 # Example usage: Export the certificate with the specified thumbprint
-#$thumbprintToExport = $Thumbprint
-#$exportFilePath = "C:\Users\Administrator\certificate.cer" # Change this to the desired export path
-#Export-CertificateByThumbprint -Thumbprint $thumbprintToExport -ExportFilePath $exportFilePath
+$thumbprintToExport = $Thumbprint
+$exportFilePath = "C:\Users\Administrator\certificate.cer" # Change this to the desired export path
+Export-CertificateByThumbprint -Thumbprint $thumbprintToExport -ExportFilePath $exportFilePath
 
 #Import a certificate to the TRUSTED CA stores
 function Import-CertificateToTrustedRoot {
@@ -171,10 +178,10 @@ function Import-CertificateToTrustedRoot {
 }
 
 # Prompt the user for the path to the certificate file
-#$certificatePath = "C:\Users\Administrator\certificate.cer"
+$certificatePath = "C:\Users\Administrator\certificate.cer"
 
 # Call the function to import the certificate and delete the file
-#Import-CertificateToTrustedRoot -CertificatePath $certificatePath
+Import-CertificateToTrustedRoot -CertificatePath $certificatePath
 
 
 
@@ -199,15 +206,39 @@ function Remove-CertificateByThumbprint {
 #$thumbprintToDelete = Read-Host "Enter the certificate thumbprint to delete"
 #Remove-CertificateByThumbprint -Thumbprint $thumbprintToDelete
 
+# Enable powershell remoting 
+Enable-PSRemoting -Force
+
 # Configuring Winrm
 # Delete any old https listeners
-winrm delete winrm/config/listener?Address=*+Transport=HTTPS
+winrm delete winrm/config/listener?Address=*+Transport=HTTP
+winrm delete winrm/config/listener?Address=*+Transport=HTTPS 
 
 Write-Host "The ip address is $IPAddress && the Thumbprint of the Trusted CA is $Thumbprint"
+
+$hostname=$IPAddress
 # Create Listener
 # Configure WinRM to use HTTPS and create a listener
-winrm create winrm/config/listener?Address=*+Transport=HTTPS '@{Hostname="44.209.94.124";CertificateThumbprint="B941C50CF5F2D7FBD2E740714C5E6F584846F814";port="5986"}'
+$command = "winrm create winrm/config/listener?Address=*+Transport=HTTPS '@{Hostname=""$hostname"";CertificateThumbprint=""$Thumbprint"";port=""5986""}'"
+Invoke-Expression $command
 
 
 # Restart the WinRM service
 	Restart-Service WinRM
+
+
+
+############# Winrm administrationcapabilities ############# 
+# Check winrm config
+#winrm get winrm/config
+
+# Check if listener is setup
+#netstat -ano | findstr ":5985"
+
+# Check users permission group
+#Set-PSSessionConfiguration -ShowSecurityDescriptorUI -Name Microsoft.PowerShell
+
+# List users that are members of Administrators group
+#net localgroup Administrators
+
+
