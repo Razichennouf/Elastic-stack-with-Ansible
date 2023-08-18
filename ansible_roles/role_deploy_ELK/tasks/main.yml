@@ -106,7 +106,6 @@
   lineinfile:
       path: /etc/elasticsearch/elasticsearch.yml
       line: "http.host: 0.0.0.0"
-      notify: restart_ELK
 
 - name: Removing the master-nodes list
   lineinfile:
@@ -114,7 +113,7 @@
       regex: '^cluster.initial_master_nodes'
       line: '#cluster.initial_master_nodes'
       insertafter: EOF
-
+  notify: restart_ELK
 - name: Configuring Kibana conf file {server.port}
   lineinfile:
       path: /etc/kibana/kibana.yml
