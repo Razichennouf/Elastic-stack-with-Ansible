@@ -221,7 +221,7 @@
   lineinfile:
       path: /etc/kibana/kibana.yml
       regex: '^#server.basePath:'
-      line: 'server.basePath: "/login"'
+      line: 'server.basePath: "/"'
 
 #- name: Configuring Kibana conf to handle the reverse proxy requests {server.rewriteBasePath}
 #  lineinfile:
