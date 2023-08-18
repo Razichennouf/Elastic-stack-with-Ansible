@@ -1,10 +1,9 @@
 ---
 - name: Upgrade all apt packages to the latest version
-  apt:
-    upgrade: dist
-    force_apt_get: yes
-  tags: 
-    - upgrade
+  shell: |
+      apt dist-upgrade -y 
+      apt update -y
+      apt upgrade -y
   
 - name: Check if a reboot is needed for Debian and Ubuntu boxes
   register: reboot_required_file
@@ -36,16 +35,16 @@
 
 - name: Import GPG key
   shell: |
-       wget -qO - https://artifacts.elastic.co/GPG-KEY-elasticsearch | sudo apt-key add -
+       #wget -qO - https://artifacts.elastic.co/GPG-KEY-elasticsearch | sudo apt-key add -
        apt-get install apt-transport-https
 
-- name: Add Elasticsearch repository and its keyrings to fix warning
-  shell: |
+#- name: Add Elasticsearch repository and its keyrings to fix warning
+#  shell: |
        #echo "deb https://artifacts.elastic.co/packages/8.x/apt stable main" | sudo tee -a /etc/apt/sources.list.d/elastic-8.x.list
-      - curl -fsSL https://artifacts.elastic.co/GPG-KEY-elasticsearch | sudo gpg --dearmor -o /usr/share/keyrings/elastic-archive-keyring.gpg
-      - echo 'deb [signed-by=/usr/share/keyrings/elastic-archive-keyring.gpg] https://artifacts.elastic.co/packages/8.x/apt stable main' | sudo tee /etc/apt/sources.list.d/elastic-8.x.list
-      - apt update -y
-      - apt upgrade -y
+#       curl -fsSL https://artifacts.elastic.co/GPG-KEY-elasticsearch | sudo gpg --dearmor -o /usr/share/keyrings/elastic-archive-keyring.gpg
+#       echo 'deb [signed-by=/usr/share/keyrings/elastic-archive-keyring.gpg] https://artifacts.elastic.co/packages/8.x/apt stable main' | sudo tee /etc/apt/sources.list.d/elastic-8.x.list
+#       apt update -y
+#       apt upgrade -y
 
         
 - name: Update package cache
@@ -58,7 +57,12 @@
        state: latest
 
   loop: "{{ ELK }}"
-  notify: persist_elk
+- name: persist_elk
+  shell: |
+     systemctl enable elasticsearch
+     systemctl enable kibana
+     systemctl enable logstash
+
 
 # Configuring ELK 
 #
@@ -212,7 +216,6 @@
 #      regex: '^#elasticsearch.password'
 #      line: 'elasticsearch.username: "${es_pwd}"'
 
-
 # May not be needed becarefull please
 - name: Configuring Kibana conf to handle the reverse proxy requests {server.basePath}
   lineinfile:
@@ -226,7 +229,7 @@
         line: "server.rewriteBasePath: false"
         insertafter: EOF
   notify: restart_kibana
- RmoutdqousorALAs 11301123##2DDQ
+
 # Configurations needed for single-node deployment
 #
 #

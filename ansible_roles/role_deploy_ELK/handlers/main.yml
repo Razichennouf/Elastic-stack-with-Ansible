@@ -16,6 +16,6 @@
 
 - name: persist_elk
   shell: |
-    - systemctl enable elasticsearch
-    - systemctl enable kibana
-    - systemctl enable logstash
+     systemctl enable elasticsearch
+     systemctl enable kibana
+     systemctl enable logstash
