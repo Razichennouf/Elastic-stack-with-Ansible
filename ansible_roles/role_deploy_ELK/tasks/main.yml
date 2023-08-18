@@ -1,10 +1,15 @@
 ---
+- name: Upgrade all apt packages to the latest version
+  apt:
+    upgrade: dist
+    force_apt_get: yes
+  tags: 
+    - upgrade
 
-- name: Upgrade all apt packages
-  apt: upgrade=dist force_apt_get=yes
 - name: Check if a reboot is needed for Debian and Ubuntu boxes
   register: reboot_required_file
   stat: path=/var/run/reboot-required get_md5=no
+
 - name: Reboot the Debian or Ubuntu server
   reboot:
         msg: "Reboot initiated by Ansible due to kernel updates"
@@ -47,6 +52,7 @@
   when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
   loop: "{{ ELK }}"
   notify: persist_elk
+  
 - name: Installing NGINX Webserver
   apt:
       name:
@@ -168,15 +174,15 @@
   register: elastic_pw_val
 
 # Managing the keystore for secure rest //// Another way to setup passwords without changing the elasticsearch parameters in kibana 
-- name: Adding Keystore with the exact parameter name in kibana.yml
-  command: "/usr/share/kibana/bin/kibana-keystore add elasticsearch.username"
-  args:
-        stdin: "elastic"
+#- name: Adding Keystore with the exact parameter name in kibana.yml
+#  command: "/usr/share/kibana/bin/kibana-keystore add elasticsearch.username"
+#  args:
+#        stdin: "elastic"
 
-- name: Adding Keystore with the exact parameter name in kibana.yml
-  command: "/usr/share/kibana/bin/kibana-keystore add elasticsearch.password"
-  args:
-        stdin: "{{ elastic_pw_val }}"
+#- name: Adding Keystore with the exact parameter name in kibana.yml
+#  command: "/usr/share/kibana/bin/kibana-keystore add elasticsearch.password"
+#  args:
+#        stdin: "{{ elastic_pw_val }}"
 
 
 #- name: Create Kibana Keystore

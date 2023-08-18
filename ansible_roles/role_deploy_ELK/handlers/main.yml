@@ -1,18 +1,16 @@
 ---
 # handlers file for deploy_ELK
-- name: restart_ELK
-  service:
-    name: "{{ item }}"
-    state: restarted
-    enabled: yes
-    use: service
-  loop: "{{ ELK }}"
+#- name: restart_ELK
+#  service:
+#    name: "{{ item }}"
+#    state: restarted
+#    enabled: yes
+#    use: service
+#  loop: "{{ ELK }}"
+- name: restart_elasticsearch
+  shell:  systemctl restart elasticsearch.service
 - name: persist_elk
-  service:
-     name: "{{ item }}"
-     state: started
-     enabled: yes
-     daemon-reload: yes
-     use: service
-  loop: "{{ ELK }}"
-
+  shell: |
+    - systemctl enable elasticsearch
+    - systemctl enable kibana
+    - systemctl enable logstash
