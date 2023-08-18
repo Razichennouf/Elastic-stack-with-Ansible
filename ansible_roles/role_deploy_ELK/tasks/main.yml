@@ -129,8 +129,8 @@
   lineinfile:
       path: /etc/kibana/kibana.yml
       regex: '^#server.publicBaseUrl:'
-insertafter: EOF
       line: 'server.publicBaseUrl: "https://ansi-elk.duckdns.org"'
+      insertafter: EOF
 - name: Configuring Kibana conf file {server.name}
   lineinfile:
       path: /etc/kibana/kibana.yml
@@ -148,9 +148,9 @@ insertafter: EOF
         /usr/share/kibana/bin/kibana-encryption-keys generate --force | grep -A 3 "Settings:" | grep -v "Settings:" > /home/ubuntu/params_xpack
         chmod 600 /home/ubuntu/params_xpack
 - name: retrieve the keys with xpack params
-    slurp:
+  slurp:
        src: /home/ubuntu/params_xpack
-    register: params_xpack
+  register: params_xpack
 
 - name: Inserting params
   lineinfile:
@@ -161,15 +161,15 @@ insertafter: EOF
 
 # Changing elastic password and saving it in the current directory for later use in 600 mode
 - name: Chaning elastic password
-    shell: |
+  shell: |
        yes | sudo /usr/share/elasticsearch/bin/elasticsearch-reset-password -u test | grep -oP 'New value: \K.*' > /home/ubuntu/elastic_pw
        chmod 600 elastic_pw
     #'/New value:/ {print $NF}' output.txt
     #sed -n 's/New value: //p' output.txt
-  - name: retrieve the elastic_pw value
-    slurp:
+- name: retrieve the elastic_pw value
+  slurp:
        src: /home/ubuntu/elastic_pw
-    register: elastic_pw_val
+  register: elastic_pw_val
 
 # Configurations needed for single-node deployment
 #
@@ -220,7 +220,7 @@ insertafter: EOF
 #
 #
 - name: Copy and render Nginx configuration file
-     template:
+  template:
         src: role_deploy_ELK/templates/default.j2 
         dest: /etc/nginx/sites-available/default
         mode: '0644'
@@ -238,11 +238,11 @@ insertafter: EOF
       name: Let's encrypt SSL Certificate Renewal
       state: present
       user: root
-      minute: 0
-      hour: 12
-      day: *
-      weekday: *
-      month: *
+      minute: '0'
+      hour: '12'
+      day: '*'
+      weekday: '*'
+      month: '*'
       job: /usr/bin/certbot renew --quiet
 
 - name: Fixing and redirecting the traffic from IpAddress to Domain name
