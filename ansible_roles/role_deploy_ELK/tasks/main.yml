@@ -49,6 +49,7 @@
        state: latest
   when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
   loop: "{{ ELK }}"
+  notify: persist_elk
 - name: Installing NGINX Webserver
   apt:
       name: 

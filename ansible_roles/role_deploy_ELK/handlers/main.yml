@@ -6,3 +6,11 @@
     state: restarted
     enabled: yes
   loop: "{{ ELK }}"
+- name: persist_elk
+  service:
+     name: "{{ item }}"
+     state: started
+     enabled: yes
+     daemon-reload: yes
+  loop: "{{ ELK }}"
+
