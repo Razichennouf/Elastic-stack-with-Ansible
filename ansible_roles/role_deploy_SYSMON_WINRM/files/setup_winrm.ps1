@@ -1,3 +1,15 @@
+<#PSScriptInfo
+.SYNOPSIS
+WinRM Deployment Utilities
+
+.DESCRIPTION
+This script provides a comprehensive set of automation utilities for managing WinRM configurations.
+
+.VERSION 1.0
+
+.AUTHOR
+Razi chennouf
+#>
 function Enable-PowerShellRemoting {
     Enable-PSRemoting -Force
     Write-Host "PowerShell Remoting Enabled"
@@ -104,15 +116,16 @@ function Manage-Certificate {
     }
     
     # Create a new self-signed certificate
-    $newCertificate = New-SelfSignedCertificate -DnsName $IPAddress -CertStoreLocation Cert:\LocalMachine\My
-    if (-not $newCertificate) {
+    $global:newCertificate = New-SelfSignedCertificate -DnsName $IPAddress -CertStoreLocation Cert:\LocalMachine\My
+    if (-not $global:newCertificate) {
         Write-Host "Failed to create a new certificate."
         return
     }
-    Write-Host "Created new certificate for IP: $IPAddress with thumbprint: $($newCertificate.Thumbprint)"
+    
+    Write-Host "Created new certificate for IP: $IPAddress with thumbprint: ""$global:newCertificate.Thumbprint"")"
 
     # Export the certificate to the specified file
-    $newCertificate | Export-Certificate -FilePath $ExportFilePath -Force
+    $global:newCertificate | Export-Certificate -FilePath $ExportFilePath -Force
     Write-Host "Certificate exported to: $ExportFilePath"
 
     # Import the exported certificate to the Trusted Root Certification Authorities store
@@ -122,7 +135,8 @@ function Manage-Certificate {
     # Clean up
     Remove-Item $ExportFilePath -Force
     Write-Host "Certificate file deleted from: $ExportFilePath"
-
+    
+    
     Write-Host "Certificates managed successfully for IP: $IPAddress"
 }
 
@@ -135,12 +149,14 @@ function Configure-Winrm {
     Set-Service WinRM -StartupType 'Automatic'
     
     winrm delete winrm/config/listener?Address=*+Transport=HTTP
-    winrm delete winrm/config/listener?Address=*+Transport=HTTPS 
-    $hostname=$IPAddress
+    winrm delete winrm/config/listener?Address=*+Transport=HTTPS
     # Create Listener
 	# Configure WinRM to use HTTPS and create a listener
+	$hostname=$serverIP
+	$Thumbprint=$global:newCertificate.Thumbprint
 	$command = "winrm create winrm/config/listener?Address=*+Transport=HTTPS '@{Hostname=""$hostname"";CertificateThumbprint=""$Thumbprint"";port=""5986""}'"
 	Invoke-Expression $command
+	
 	Restart-Service WinRM
     Write-Host "WinRM Configured"
 }
@@ -217,32 +233,60 @@ function Get-LocalUsers {
 Get-LocalUser
 }
 
+function Delete-Certificate {
+    param (
+        [string]$Thumbprint
+    )
+
+    # Get the certificate by thumbprint from the LocalMachine\My store
+    $certificate = Get-ChildItem -Path "Cert:\LocalMachine\My" | Where-Object { $_.Thumbprint -eq $Thumbprint }
+
+    if ($certificate) {
+        # Delete the certificate
+        $certificate | Remove-Item
+        Write-Host "Certificate with thumbprint '$Thumbprint' has been deleted."
+    } else {
+        Write-Host "Certificate with thumbprint '$Thumbprint' not found."
+    }
+}
+
+function Delete-WinrmListeners {
+	winrm delete winrm/config/listener?Address=*+Transport=HTTP
+    	winrm delete winrm/config/listener?Address=*+Transport=HTTPS
+}
+
 # Menu
 function Show-Menu {
     param(
         [string]$Title = 'WinRM Deployment Utilities',
         [string]$Title2 = 'WinRM Admin Utilities'
     )
-
-    Clear-Host
+	Clear-Host
+	# Prompt user for input
+	Write-Host -ForegroundColor 14 "| You need to give attention if you are using AWS or you does not use a CP check the HINT"
+	Write-Host "|____ If you are using AWS, Before starting Go to SG (Security Group) and enable WINRM-HTTPS port"
+	Write-Host "|____ If you are not using AWS choose option 5 to configure the Local firewall rules"
+	Write-Host ""
     Write-Host "================ $Title ================"
 
     Write-Host "1: Enable PowerShell Remoting"
     Write-Host "2: Configure WinRM Client"
     Write-Host "3: Configure WinRM Server"
-    Write-Host "4: AWS Specific Configuration"
+    Write-Host "4: AWS User Specific Configuration <-- Only when using AWS"
     Write-Host "5: Configure Firewall"
     Write-Host "6: Setup Automation User"
     Write-Host "7: Manage Certificates"
     Write-Host "8: Configure WinRM"
     Write-Host "================ $Title2 ================"
-    Write-Host "9: List all available Certificates"
-    Write-Host "10: List  winrm configuration"
-    Write-Host "11: List all winrm listeners"
-    Write-Host "12: Check permission group"
-    Write-Host "13: Get members of specific group"
-    Write-Host "14: List all available users with description"
-    Write-Host "15: Add a specific user to a specific group"
+    Write-Host "9: Delete all winrm listeners" 
+    Write-Host "10: List all available Certificates"
+    Write-Host "11: Delete a certificate"
+    Write-Host "12: List  winrm configuration"
+    Write-Host "13: List all winrm listeners"
+    Write-Host "14: Check permission group"
+    Write-Host "15: Get members of specific group"
+    Write-Host "16: List all available users with description"
+    Write-Host "17: Add a specific user to a specific group"
     Write-Host "Q: Quit"
 }
 
@@ -275,7 +319,8 @@ do {
             break
         }
         '7' {
-            $serverIP = Read-Host "Enter Servers IP address for WinRM"
+            $global:NewCertificate = $null
+            $global:serverIP = Read-Host "Enter Servers IP address for WinRM"
             Manage-Certificate -IPAddress $serverIP
             break
         }
@@ -284,32 +329,41 @@ do {
             break
         }
         '9' {
+            Delete-WinrmListeners
+            break
+        }
+        '10' {
             Get-Certificates
             break
         }
-        '10'{
+        '11' {
+           $thumbprintToDelete = Read-Host "Enter the certificate thumbprint to delete"
+	   Delete-Certificate -Thumbprint $thumbprintToDelete 
+           break
+        }
+        '12'{
             Get-WinrmConfig
        	    break
         }
-         '11'{
+         '13'{
             Check-WinrmListeners
        	    break
         }
-        '12'{
+        '14'{
             User-PermissionGroup
        	    break
         }
-        '13'{
+        '15'{
             Write-Host "Example: Remote Management Users / Administrators / Remote Desktop Users"
             $groupToQuery = Read-Host "Enter the name of the group you want to query"
             Get-GroupMembers -GroupName $groupToQuery
             break
         }
-        '14' {
+        '16' {
             Get-LocalUsers
             break
             }
-        '15' {
+        '17' {
             Add-DynamicLocalGroupMember
 	    break
         }
