@@ -3,4 +3,4 @@
   become: t
   hosts: ubuntu
   roles:
-    - deploy_ELK 
+    - role_deploy_ELK
