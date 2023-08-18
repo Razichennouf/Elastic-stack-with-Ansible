@@ -9,6 +9,11 @@
 #  loop: "{{ ELK }}"
 - name: restart_elasticsearch
   shell:  systemctl restart elasticsearch.service
+- name: restart_kibana
+  shell: systemctl restart kibana.service
+- name: restart_logstash
+  shell: systemctl restart logstash.service
+
 - name: persist_elk
   shell: |
     - systemctl enable elasticsearch

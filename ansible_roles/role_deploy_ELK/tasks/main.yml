@@ -5,7 +5,7 @@
     force_apt_get: yes
   tags: 
     - upgrade
-
+  
 - name: Check if a reboot is needed for Debian and Ubuntu boxes
   register: reboot_required_file
   stat: path=/var/run/reboot-required get_md5=no
@@ -38,9 +38,16 @@
   shell: |
        wget -qO - https://artifacts.elastic.co/GPG-KEY-elasticsearch | sudo apt-key add -
        apt-get install apt-transport-https
-- name: Add Elasticsearch repository
+
+- name: Add Elasticsearch repository and its keyrings to fix warning
   shell: |
-        echo "deb https://artifacts.elastic.co/packages/8.x/apt stable main" | sudo tee -a /etc/apt/sources.list.d/elastic-8.x.list
+      - #echo "deb https://artifacts.elastic.co/packages/8.x/apt stable main" | sudo tee -a /etc/apt/sources.list.d/elastic-8.x.list
+      - curl -fsSL https://artifacts.elastic.co/GPG-KEY-elasticsearch | sudo gpg --dearmor -o /usr/share/keyrings/elastic-archive-keyring.gpg
+      - echo 'deb [signed-by=/usr/share/keyrings/elastic-archive-keyring.gpg] https://artifacts.elastic.co/packages/8.x/apt stable main' | sudo tee /etc/apt/sources.list.d/elastic-8.x.list
+      - apt update -y
+      - apt upgrade -y
+
+        
 - name: Update package cache
   apt:
      update_cache: yes
@@ -49,17 +56,9 @@
   apt:
        name: "{{ item }}"
        state: latest
-  when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+
   loop: "{{ ELK }}"
   notify: persist_elk
-  
-- name: Installing NGINX Webserver
-  apt:
-      name:
-         - nginx
-         - certbot
-         - python3-certbot-nginx
-      state: latest
 
 # Configuring ELK 
 #
@@ -117,7 +116,9 @@
       regex: '^cluster.initial_master_nodes'
       line: '#cluster.initial_master_nodes'
       insertafter: EOF
-  notify: restart_ELK
+  notify: restart_elasticsearch
+  
+# Kibana
 - name: Configuring Kibana conf file {server.port}
   lineinfile:
       path: /etc/kibana/kibana.yml
@@ -159,7 +160,6 @@
       path: /etc/kibana/kibana.yml
       line: "{{ params_xpack.content | b64decode }}"
       insertafter: EOF
-  notify: restart_ELK
 
 # Changing elastic password and saving it in the current directory for later use in 600 mode
 - name: Chaning elastic password
@@ -212,17 +212,6 @@
 #      regex: '^#elasticsearch.password'
 #      line: 'elasticsearch.username: "${es_pwd}"'
 
-# Configurations needed for single-node deployment
-#
-#
-#
-- name: Setting up number_of_replicas to 0 via API call
-  shell: |
-       curl -k -H "Content-Type: application/json" -XPUT https://localhost:9200/*/_settings -d '{ "index" : { "number_of_replicas" : 0 } }' -u elastic:"{{ elastic_pw_val.content | b64decode }}"
-  register: curl_res
-- name: Printing results
-  debug:
-     var: curl_res.stdout_lines
 
 # May not be needed becarefull please
 - name: Configuring Kibana conf to handle the reverse proxy requests {server.basePath}
@@ -236,7 +225,19 @@
         path: /etc/elasticsearch/elasticsearch.yml
         line: "server.rewriteBasePath: false"
         insertafter: EOF
-  notify: restart_ELK
+  notify: restart_kibana
+ 
+# Configurations needed for single-node deployment
+#
+#
+#
+- name: Setting up number_of_replicas to 0 via API call
+  shell: |
+       curl -k -H "Content-Type: application/json" -XPUT https://localhost:9200/*/_settings -d '{ "index" : { "number_of_replicas" : 0 } }' -u elastic:"{{ elastic_pw_val.content | b64decode }}"
+  register: curl_res
+- name: Printing results
+  debug:
+     var: curl_res.stdout_lines
 
 # Manual setup with manual guidance
 #
@@ -260,6 +261,14 @@
 #
 #
 #
+- name: Installing NGINX Webserver
+  apt:
+      name:
+         - nginx
+         - certbot
+         - python3-certbot-nginx
+      state: latest
+      
 - name: Copy and render Nginx configuration file
   template:
         src: role_deploy_ELK/templates/default.j2
