@@ -169,6 +169,15 @@ function Get-Certificates {
 function Get-WinrmConfig {
 winrm get winrm/config
 }
+function Check-WinrmListeners {
+    $result = netstat -ano | findstr ":5986"
+
+    if (-not $result) {
+        Write-Host "The listener is not set up on port 5986." -ForegroundColor Red
+    } else {
+        Write-Host $result
+    }
+}
 
 function User-PermissionGroup {
 Set-PSSessionConfiguration -ShowSecurityDescriptorUI -Name Microsoft.PowerShell
@@ -228,11 +237,12 @@ function Show-Menu {
     Write-Host "8: Configure WinRM"
     Write-Host "================ $Title2 ================"
     Write-Host "9: List all available Certificates"
-    Write-Host "10: List all winrm listeners"
-    Write-Host "11: Check permission group"
-    Write-Host "12: Get members of specific group"
-    Write-Host "13: List all available users with description"
-    Write-Host "14: Add a specific user to a specific group"
+    Write-Host "10: List  winrm configuration"
+    Write-Host "11: List all winrm listeners"
+    Write-Host "12: Check permission group"
+    Write-Host "13: Get members of specific group"
+    Write-Host "14: List all available users with description"
+    Write-Host "15: Add a specific user to a specific group"
     Write-Host "Q: Quit"
 }
 
@@ -281,21 +291,25 @@ do {
             Get-WinrmConfig
        	    break
         }
-        '11'{
-            User-PermissionGroup
+         '11'{
+            Check-WinrmListeners
        	    break
         }
         '12'{
+            User-PermissionGroup
+       	    break
+        }
+        '13'{
             Write-Host "Example: Remote Management Users / Administrators / Remote Desktop Users"
             $groupToQuery = Read-Host "Enter the name of the group you want to query"
             Get-GroupMembers -GroupName $groupToQuery
             break
         }
-        '13' {
+        '14' {
             Get-LocalUsers
             break
             }
-        '14' {
+        '15' {
             Add-DynamicLocalGroupMember
 	    break
         }
