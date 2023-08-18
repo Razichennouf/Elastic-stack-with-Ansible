@@ -27,7 +27,7 @@ done
 
 # Test the winrm over HTTPS if the certificate is healthy
 result=$(echo 'y' | openssl s_client -connect $Hostname:5986 -showcerts 2>&1) # The '2>&1' redirects stderr to stdout, capturing both in the variable
-
+#result2=$(nc -zvw10 3.92.65.100 5986) # Test is the Port in listening state
 # Check the output
 if [[ $result == *DONE* ]]; then
     echo ">>>>>> Winrm is ready to use."

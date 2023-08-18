@@ -1,61 +1,55 @@
-# Enable PowerShell remoting
-Enable-PSRemoting -Force
+function Enable-PowerShellRemoting {
+    Enable-PSRemoting -Force
+    Write-Host "PowerShell Remoting Enabled"
+}
 
-
-# Configure WinRM Client (More secure block "client" auths)
-	Set-Item -Path 'WSMan:\localhost\Client\Auth\Certificate' -Value $false
+function Configure-WinRMClient {
+    	Set-Item -Path 'WSMan:\localhost\Client\Auth\Certificate' -Value $false
 	Set-Item -Path 'WSMan:\localhost\Client\AllowUnencrypted' -Value $false
 	Set-Item -Path 'WSMan:\localhost\Client\Auth\Basic' -Value $false
 	Set-Item -Path 'WSMan:\localhost\Client\Auth\CredSSP' -Value $false
 	Set-Item -Path 'WSMan:\localhost\Client\Auth\Kerberos' -Value $false
-# Configure WinRM Service 
-	Set-Item -Path 'WSMan:\localhost\Service\Auth\Certificate' -Value $false
+    Write-Host "WinRM Client Configured"
+}
+
+function Configure-WinRMServer {
+        Set-Item -Path 'WSMan:\localhost\Service\Auth\Certificate' -Value $false
 	Set-Item -Path 'WSMan:\localhost\Service\AllowUnencrypted' -Value $false
 	Set-Item -Path 'WSMan:\localhost\Service\Auth\Basic' -Value $true
 	Set-Item -Path 'WSMan:\localhost\Service\Auth\CredSSP' -Value $true
 	Set-Item -Path 'WSMan:\localhost\Service\Auth\Kerberos' -Value $false
-
-# If you are using Basic authentication i.e. Local usernames , then you need to set it as True using the following commands in Powershell (As admin)
-#winrm set winrm/config/client/auth '@{Basic="true"}'
-#winrm set winrm/config/service/auth '@{Basic="true"}'
-
-# If you are using the AWS and you have a fresh instance the password of the default user `Administrator` is generated temporarly with the private key
-# So if you have a fresh instance we need to persist a new password securely
-$environment = Read-Host "Are you using AWS? (Type 'yes' or 'no')"
-
-if ($environment -eq "yes") {
-	$Password = Read-Host "Enter the new password" -AsSecureString
-	$UserAccount = Get-LocalUser -Name "Administrator"
-	$UserAccount | Set-LocalUser -Password $Password
-}
-elseif ($environment -eq "no") {
-	Write-Host "Check and persist a password with a no expiration date"
-}
-else {
-    Write-Host "Invalid input. Please type 'yes' or 'no' to choose the environment."
+    Write-Host "WinRM Server Configured"
 }
 
-# Set WinRM service startup type to automatic
-Set-Service WinRM -StartupType 'Automatic'
+function Configure-AWSSpecificSettings {
+    $environment = Read-Host "Are you using AWS? (Type 'yes' or 'no')"
 
-# Create a firewall rule to allow WinRM HTTPS inbound
-# AWS Security Group Management and enabling WinRM HTTPS for both IPv4 and IPv6
-    Write-Host "1) Add AWS Security Group rules for WinRM HTTPS in 0.0.0.0 and ::/0  "
-    # Enabling WinRM ports for both IPv4 and IPv6 using New-NetFirewallRule
-    Write-Host "2) Enabling WinRM ports for both IPv4 and IPv6 on the local server..."
-    New-NetFirewallRule -DisplayName "Allow WinRM HTTPS IPv4" -Direction Inbound -LocalPort 5986 -Protocol TCP -Action Allow
-    # Later to fix we need to enable IPV6 because somme softwares needs IPV6 to work
-	#New-NetFirewallRule -DisplayName "Allow WinRM HTTPS IPv6" -Direction Inbound -LocalPort 5986 -Protocol TCP -Action Allow -LocalAddress ::/0
-    Write-Host "3) WinRM HTTPS ports enabled for both IPv4 and IPv6."
+	if ($environment -eq "yes") {
+		$Password = Read-Host "Enter the new password" -AsSecureString
+		$UserAccount = Get-LocalUser -Name "Administrator"
+		$UserAccount | Set-LocalUser -Password $Password
+	}
+	elseif ($environment -eq "no") {
+		Write-Host "Check and persist a password with a no expiration date"
+	}
+	else {
+	    Write-Host "Invalid input. Please type 'yes' or 'no' to choose the environment."
+	}
 
+    Write-Host "AWS Specific Configuration Done"
+}
 
+function Configure-Firewall {
+	    Write-Host "1) Add AWS Security Group rules for WinRM HTTPS in 0.0.0.0 and ::/0  "
+	    # Enabling WinRM ports for both IPv4 and IPv6 using New-NetFirewallRule
+	    Write-Host "2) Enabling WinRM ports for both IPv4 and IPv6 on the local server..."
+	    New-NetFirewallRule -DisplayName "Allow WinRM HTTPS IPv4" -Direction Inbound -LocalPort 5986 -Protocol TCP -Action Allow
+	    # Later to fix we need to enable IPV6 because somme softwares needs IPV6 to work
+		#New-NetFirewallRule -DisplayName "Allow WinRM HTTPS IPv6" -Direction Inbound -LocalPort 5986 -Protocol TCP -Action Allow -LocalAddress ::/0
+    Write-Host "WinRM HTTPS ports enabled for both IPv4 and IPv6."
+    Write-Host "Firewall Rules Configured"
+}
 
-# Configure TrustedHosts
-Write-Host "Trusting All Hosts..."
-Set-Item WSMan:\localhost\Client\TrustedHosts -Value "*" -Force
-
-#Configuring user (For more security of the machines we will create a dedicated user for the automation JOB)
-Write-Host "Setting up the automation User..."
 function Get-SecurePassword {
     param (
         [string]$Prompt = "Enter a strong password for the user "
@@ -78,47 +72,81 @@ function Get-SecurePassword {
 
     return $securePassword
 }
+function SetupAutomationUser {
 
-# Get the desired username from the user
-$username = Read-Host "Enter the username for the new automation user"
-
-# Get a valid secure password
-$password = Get-SecurePassword
-
-# Create the new user
-try {
+    $username = Read-Host "Enter the username for the new automation user"
+    $password = Get-SecurePassword
+    try {
     New-LocalUser -Name $username -Password $password -PasswordNeverExpires
     Write-Host "User '$username' has been created."
-} catch {
-    Write-Host "Error creating user: $_"
+	} catch {
+	    Write-Host "Error creating user: $_"
+	}
+    # Optional but Must do if in production !!!! be carefull
+       # !!!!!!! (dont give those group permissions to the user) Add user to Administrators and Remote Management Users groups (Optional) 
+       # net localgroup Administrators $username /add #Dont do this in production
+    Write-Host "Automation User Setup Done"
 }
-# !!!!!!! (dont give those group permissions to the user) Add user to Administrators and Remote Management Users groups (Optional) 
- net localgroup Administrators $username /add #Dont do this in production
-# net localgroup "Remote Management Users" $username /add
 
 
-# UAC
+function Manage-Certificate {
+    param (
+        [Parameter(Mandatory=$true)]
+        [string]$IPAddress,
 
-# Certificate management
-# Create Certificate
-$IPAddress = Read-Host "Enter Servers IP address WinRM"
-New-SelfSignedCertificate -DnsName $IPAddress -CertStoreLocation Cert:\LocalMachine\My
-# Extract thumbprint
-  # Get the certificates from the LocalMachine\My store
-  $certificates = Get-ChildItem -Path "Cert:\LocalMachine\My"
- 
-  # Filter certificates that have a matching hostname in SAN or Subject
-  $matchingCert = $certificates | Where-Object { $_.DnsNameList -contains $IPAddress -or $_.Subject -match "CN=$IPAddress" }
+        [string]$ExportFilePath = "C:\Users\Administrator\certificate.cer"
+    )
+     # Check if a certificate for the given IP already exists
+    $existingCertificate = Get-ChildItem -Path "Cert:\LocalMachine\My" | Where-Object { $_.DnsNameList -contains $IPAddress -or $_.Subject -match "CN=$IPAddress" }
+    if ($existingCertificate) {
+        Write-Host "A certificate for IP: $IPAddress with thumbprint $($existingCertificate.Thumbprint) already exists."
+        return
+    }
+    
+    # Create a new self-signed certificate
+    $newCertificate = New-SelfSignedCertificate -DnsName $IPAddress -CertStoreLocation Cert:\LocalMachine\My
+    if (-not $newCertificate) {
+        Write-Host "Failed to create a new certificate."
+        return
+    }
+    Write-Host "Created new certificate for IP: $IPAddress with thumbprint: $($newCertificate.Thumbprint)"
 
-if ($matchingCert) {
-    # Found a matching certificate, extract its thumbprint
-    $Thumbprint = $matchingCert.Thumbprint
-    Write-Output $Thumbprint
+    # Export the certificate to the specified file
+    $newCertificate | Export-Certificate -FilePath $ExportFilePath -Force
+    Write-Host "Certificate exported to: $ExportFilePath"
+
+    # Import the exported certificate to the Trusted Root Certification Authorities store
+    Import-Certificate -FilePath $ExportFilePath -CertStoreLocation Cert:\LocalMachine\Root
+    Write-Host "Certificate imported to Trusted Root Certification Authorities store."
+
+    # Clean up
+    Remove-Item $ExportFilePath -Force
+    Write-Host "Certificate file deleted from: $ExportFilePath"
+
+    Write-Host "Certificates managed successfully for IP: $IPAddress"
 }
-else {
-    Write-Host "No certificate found with Hostname: $IPAddress"
+
+
+function Configure-Winrm {
+    # Configure TrustedHosts On client side (Ansible)
+    Write-Host "Trusting All Hosts..."
+    Set-Item WSMan:\localhost\Client\TrustedHosts -Value "*" -Force
+   
+    Set-Service WinRM -StartupType 'Automatic'
+    
+    winrm delete winrm/config/listener?Address=*+Transport=HTTP
+    winrm delete winrm/config/listener?Address=*+Transport=HTTPS 
+    $hostname=$IPAddress
+    # Create Listener
+	# Configure WinRM to use HTTPS and create a listener
+	$command = "winrm create winrm/config/listener?Address=*+Transport=HTTPS '@{Hostname=""$hostname"";CertificateThumbprint=""$Thumbprint"";port=""5986""}'"
+	Invoke-Expression $command
+	Restart-Service WinRM
+    Write-Host "WinRM Configured"
 }
-# List certificates available
+
+
+# Administration section 
 function Get-Certificates {
     # Get the certificates from the LocalMachine\My store
     $certificates = Get-ChildItem -Path "Cert:\LocalMachine\My"
@@ -137,108 +165,143 @@ function Get-Certificates {
         Write-Host "No certificates found in the LocalMachine\My store."
     }
 }
- Get-Certificates
 
-# Export certificate from a thumbprint
-function Export-CertificateByThumbprint {
+function Get-WinrmConfig {
+winrm get winrm/config
+}
+
+function User-PermissionGroup {
+Set-PSSessionConfiguration -ShowSecurityDescriptorUI -Name Microsoft.PowerShell
+}
+function Add-DynamicLocalGroupMember {
     param (
-        [string]$Thumbprint,
-        [string]$ExportFilePath
+        [string]$GroupName = (Read-Host "Enter the group name (e.g., 'Remote Management Users')"),
+        [string]$MemberName = (Read-Host "Enter the member name (e.g., 'Administrator')")
     )
 
-    # Get the certificate by thumbprint from the LocalMachine\My store
-    $certificate = Get-ChildItem -Path "Cert:\LocalMachine\My" | Where-Object { $_.Thumbprint -eq $Thumbprint }
-
-    if ($certificate) {
-        # Export the certificate to the specified file
-        $certificate | Export-Certificate -FilePath $ExportFilePath -Force
-        Write-Host "Certificate with thumbprint '$Thumbprint' has been exported to: $ExportFilePath"
-    } else {
-        Write-Host "Certificate with thumbprint '$Thumbprint' not found."
+    # Check if the group exists
+    if (-not (Get-LocalGroup -Name $GroupName -ErrorAction SilentlyContinue)) {
+        Write-Host "The group $GroupName does not exist!" -ForegroundColor Red
+        return
     }
-}
-# Example usage: Export the certificate with the specified thumbprint
-$thumbprintToExport = $Thumbprint
-$exportFilePath = "C:\Users\Administrator\certificate.cer" # Change this to the desired export path
-Export-CertificateByThumbprint -Thumbprint $thumbprintToExport -ExportFilePath $exportFilePath
 
-#Import a certificate to the TRUSTED CA stores
-function Import-CertificateToTrustedRoot {
-    param (
-        [string]$CertificatePath
-    )
-
-    # Import the certificate to the Trusted Root Certification Authorities store
-    Import-Certificate -FilePath $CertificatePath -CertStoreLocation Cert:\LocalMachine\Root
-
-    Write-Host "Certificate imported to Trusted Root Certification Authorities store."
-
-    # Delete the certificate file from the file system
-    Remove-Item $CertificatePath -Force
-}
-
-# Prompt the user for the path to the certificate file
-$certificatePath = "C:\Users\Administrator\certificate.cer"
-
-# Call the function to import the certificate and delete the file
-Import-CertificateToTrustedRoot -CertificatePath $certificatePath
-
-
-
-# Delete Certificate from thumbprint function
-function Remove-CertificateByThumbprint {
-    param (
-        [string]$Thumbprint
-    )
-
-    # Get the certificate by thumbprint from the LocalMachine\My store
-    $certificate = Get-ChildItem -Path "Cert:\LocalMachine\My" | Where-Object { $_.Thumbprint -eq $Thumbprint }
-
-    if ($certificate) {
-        # Delete the certificate
-        $certificate | Remove-Item
-        Write-Host "Certificate with thumbprint '$Thumbprint' has been deleted."
-    } else {
-        Write-Host "Certificate with thumbprint '$Thumbprint' not found."
+    # Check if the user exists
+    if (-not (Get-LocalUser -Name $MemberName -ErrorAction SilentlyContinue)) {
+        Write-Host "The user $MemberName does not exist!" -ForegroundColor Red
+        return
     }
+
+    # Add the member to the group
+    Add-LocalGroupMember -Group $GroupName -Member $MemberName
+
+    Write-Host "Added $MemberName to $GroupName successfully!" -ForegroundColor Green
 }
-# Call the function with the desired thumbprint
-#$thumbprintToDelete = Read-Host "Enter the certificate thumbprint to delete"
-#Remove-CertificateByThumbprint -Thumbprint $thumbprintToDelete
 
-# Enable powershell remoting 
-Enable-PSRemoting -Force
+function Get-GroupMembers {
+    param(
+        [Parameter(Mandatory=$true)]
+        [string]$GroupName
+    )
+    net localgroup $GroupName
+}
+function Get-LocalUsers {
+Get-LocalUser
+}
 
-# Configuring Winrm
-# Delete any old https listeners
-winrm delete winrm/config/listener?Address=*+Transport=HTTP
-winrm delete winrm/config/listener?Address=*+Transport=HTTPS 
+# Menu
+function Show-Menu {
+    param(
+        [string]$Title = 'WinRM Deployment Utilities',
+        [string]$Title2 = 'WinRM Admin Utilities'
+    )
 
-Write-Host "The ip address is $IPAddress && the Thumbprint of the Trusted CA is $Thumbprint"
+    Clear-Host
+    Write-Host "================ $Title ================"
 
-$hostname=$IPAddress
-# Create Listener
-# Configure WinRM to use HTTPS and create a listener
-$command = "winrm create winrm/config/listener?Address=*+Transport=HTTPS '@{Hostname=""$hostname"";CertificateThumbprint=""$Thumbprint"";port=""5986""}'"
-Invoke-Expression $command
+    Write-Host "1: Enable PowerShell Remoting"
+    Write-Host "2: Configure WinRM Client"
+    Write-Host "3: Configure WinRM Server"
+    Write-Host "4: AWS Specific Configuration"
+    Write-Host "5: Configure Firewall"
+    Write-Host "6: Setup Automation User"
+    Write-Host "7: Manage Certificates"
+    Write-Host "8: Configure WinRM"
+    Write-Host "================ $Title2 ================"
+    Write-Host "9: List all available Certificates"
+    Write-Host "10: List all winrm listeners"
+    Write-Host "11: Check permission group"
+    Write-Host "12: Get members of specific group"
+    Write-Host "13: List all available users with description"
+    Write-Host "14: Add a specific user to a specific group"
+    Write-Host "Q: Quit"
+}
 
-
-# Restart the WinRM service
-	Restart-Service WinRM
-
-
-
-############# Winrm administrationcapabilities ############# 
-# Check winrm config
-#winrm get winrm/config
-
-# Check if listener is setup
-#netstat -ano | findstr ":5985"
-
-# Check users permission group
-#Set-PSSessionConfiguration -ShowSecurityDescriptorUI -Name Microsoft.PowerShell
-
-# List users that are members of Administrators group
-#net localgroup Administrators
-
-
+do {
+    Show-Menu
+    $input = Read-Host "Please make a selection"
+    switch ($input) {
+        '1' {
+            Enable-PowerShellRemoting
+            break
+        }
+        '2' {
+            Configure-WinRMClient
+            break
+        }
+        '3' {
+            Configure-WinRMServer
+            break
+        }
+        '4' {
+            Configure-AWSSpecificSettings
+            break
+        }
+        '5' {
+            Configure-Firewall
+            break
+        }
+        '6' {
+            SetupAutomationUser
+            break
+        }
+        '7' {
+            $serverIP = Read-Host "Enter Servers IP address for WinRM"
+            Manage-Certificate -IPAddress $serverIP
+            break
+        }
+        '8' {
+            Configure-Winrm
+            break
+        }
+        '9' {
+            Get-Certificates
+            break
+        }
+        '10'{
+            Get-WinrmConfig
+       	    break
+        }
+        '11'{
+            User-PermissionGroup
+       	    break
+        }
+        '12'{
+            Write-Host "Example: Remote Management Users / Administrators / Remote Desktop Users"
+            $groupToQuery = Read-Host "Enter the name of the group you want to query"
+            Get-GroupMembers -GroupName $groupToQuery
+            break
+        }
+        '13' {
+            Get-LocalUsers
+            break
+            }
+        '14' {
+            Add-DynamicLocalGroupMember
+	    break
+        }
+        'Q' {
+            return
+        }
+    }
+    pause
+} until ($input -eq 'Q')
