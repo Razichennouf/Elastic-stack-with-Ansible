@@ -38,13 +38,13 @@
        #wget -qO - https://artifacts.elastic.co/GPG-KEY-elasticsearch | sudo apt-key add -
        apt-get install apt-transport-https
 
-#- name: Add Elasticsearch repository and its keyrings to fix warning
-#  shell: |
+- name: Add Elasticsearch repository and its keyrings to fix warning
+  shell: |
        #echo "deb https://artifacts.elastic.co/packages/8.x/apt stable main" | sudo tee -a /etc/apt/sources.list.d/elastic-8.x.list
-#       curl -fsSL https://artifacts.elastic.co/GPG-KEY-elasticsearch | sudo gpg --dearmor -o /usr/share/keyrings/elastic-archive-keyring.gpg
-#       echo 'deb [signed-by=/usr/share/keyrings/elastic-archive-keyring.gpg] https://artifacts.elastic.co/packages/8.x/apt stable main' | sudo tee /etc/apt/sources.list.d/elastic-8.x.list
-#       apt update -y
-#       apt upgrade -y
+       curl -fsSL https://artifacts.elastic.co/GPG-KEY-elasticsearch | sudo gpg --dearmor -o /usr/share/keyrings/elastic-archive-keyring.gpg
+       echo 'deb [signed-by=/usr/share/keyrings/elastic-archive-keyring.gpg] https://artifacts.elastic.co/packages/8.x/apt stable main' | sudo tee /etc/apt/sources.list.d/elastic-8.x.list
+       apt update -y
+       apt upgrade -y
 
         
 - name: Update package cache
@@ -223,12 +223,12 @@
       regex: '^#server.basePath:'
       line: 'server.basePath: "/login"'
 
-- name: Configuring Kibana conf to handle the reverse proxy requests {server.rewriteBasePath}
-  lineinfile:
-        path: /etc/elasticsearch/elasticsearch.yml
-        line: "server.rewriteBasePath: false"
-        insertafter: EOF
-  notify: restart_kibana
+#- name: Configuring Kibana conf to handle the reverse proxy requests {server.rewriteBasePath}
+#  lineinfile:
+#        path: /etc/elasticsearch/elasticsearch.yml
+#        line: "server.rewriteBasePath: false"
+#        insertafter: EOF
+#  notify: restart_kibana
 
 # Configurations needed for single-node deployment
 #
