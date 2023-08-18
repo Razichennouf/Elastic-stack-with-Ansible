@@ -1,0 +1,13 @@
+---
+- name: playbook1
+  hosts: ubuntu
+  gather_facts: n
+  tasks:
+  - name: Adding Keystore with the exact parameter name in kibana.yml
+    command: "/usr/share/kibana/bin/kibana-keystore add elasticsearch.username"
+    args:
+         stdin: "elastic"
+  - name: Adding Keystore with the exact parameter name in kibana.yml
+    command: "/usr/share/kibana/bin/kibana-keystore add elasticsearch.password"
+    args:
+        stdin: "{{ elastic_pw_val }}"
