@@ -55,6 +55,7 @@
 </pre>
  <p><strong>Caution 2:</strong> Ansible Inventory might sometimes have an insider sensitive data so you need to <strong>encrypt</strong> the <strong>inventory</strong> and <strong>decrypt</strong> it in <strong>runtime</strong> </p>
  <pre>
+   PS: vault password in this repository is : "RmoutdqousorALAs 11301123##2DDQ"
      - At runtime : use <strong>--ask-vault-pass</strong> to get a prompt for the password  
          $ ansible-vault encrypt /path/to/inventory
      - If you want to go the other way without encrypting the whole inventory we will use the command ansible-vault and then specify it inside the ansible inventory but only when its in YAML format
