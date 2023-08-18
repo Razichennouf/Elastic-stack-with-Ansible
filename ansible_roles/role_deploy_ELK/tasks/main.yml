@@ -1,4 +1,4 @@
----
+--
 # tasks file for deploy_ELK
 #
 #
@@ -142,7 +142,6 @@
       regex: '^#elasticsearch.hosts:'
       line: 'elasticsearch.hosts: ["https://localhost:9200"]'
 
-
 - name: Generate the 3 keys
   shell: |
         /usr/share/kibana/bin/kibana-encryption-keys generate --force | grep -A 3 "Settings:" | grep -v "Settings:" > /home/ubuntu/params_xpack
@@ -162,7 +161,7 @@
 # Changing elastic password and saving it in the current directory for later use in 600 mode
 - name: Chaning elastic password
   shell: |
-       yes | sudo /usr/share/elasticsearch/bin/elasticsearch-reset-password -u test | grep -oP 'New value: \K.*' > /home/ubuntu/elastic_pw
+       yes | sudo /usr/share/elasticsearch/bin/elasticsearch-reset-password -u elastic | grep -oP 'New value: \K.*' > /home/ubuntu/elastic_pw
        chmod 600 elastic_pw
     #'/New value:/ {print $NF}' output.txt
     #sed -n 's/New value: //p' output.txt
@@ -170,6 +169,28 @@
   slurp:
        src: /home/ubuntu/elastic_pw
   register: elastic_pw_val
+
+# Managing the keystore for secure rest 
+- name: Create Kibana Keystore
+  command: "/usr/share/kibana/bin/kibana-keystore create"
+  args:
+      creates: /etc/kibana/kibana.keystore
+  register: keystore_created
+  changed_when: keystore_created.rc == 0  # Mark as changed only if keystore was created
+
+- name: Add Value to Kibana Keystore
+  command: "/usr/share/kibana/bin/kibana-keystore add ES_PWD"
+  args:
+        stdin: "{{ elastic_pw_val }}\n"  # Provide the ES_PWD value from Ansible variable
+   when: keystore_created.changed  # Only execute if keystore was created
+
+- name: Confirm Keystore Overwrite
+  command: "/bin/bash"
+  args:
+        stdin: "Y\n"  # Automatically answer 'Y' to overwrite prompt
+  when: keystore_created.changed  # Only execute if keystore was created
+- name: Appending the elasticsearch credentials in kibana config file
+  lineinfile:
 
 # Configurations needed for single-node deployment
 #
@@ -221,19 +242,34 @@
 #
 - name: Copy and render Nginx configuration file
   template:
-        src: role_deploy_ELK/templates/default.j2 
+        src: role_deploy_ELK/templates/default.j2
         dest: /etc/nginx/sites-available/default
         mode: '0644'
 
 - name: Securing nginx with additional header layers of security
   template:
-        src: role_deploy_ELK/templates/nginx.j2 
+        src: role_deploy_ELK/templates/nginx.j2
         dest: /etc/nginx/nginx.conf
         mode: '0644'
-- name: Adding SSL certificate to NGINX via certbot tool
-  shell : |
-       certbot --nginx -d ansi-elk.duckdns.org -d www.ansi-elk.duckdns.org
-- name: Deploying a cron job for certificate renewal { Let's encrypt }
+#- name: Deploying SSL certificate to NGINX via certbot tool
+#  shell : |
+#       certbot --nginx -d ansi-elk.duckdns.org -d www.ansi-elk.duckdns.org
+- name: Run Certbot
+  command: certbot certonly --non-interactive --register-unsafely-without-email --nginx -d ansi-elk.duckdns.org -d www.ansi-elk.duckdns.org
+  args:
+        creates: /etc/letsencrypt/live/your_domain
+ register: certbot_result
+
+- name: Answer Certbot Prompts
+  expect:
+        command: certbot certonly --register-unsafely-without-email
+        responses:
+          "(Enter 'c' to cancel):": "test@test.com\n"
+          "(Y)es/(N)o:": "yes\n"
+          "Would you be willing, once your first certificate is successfully issued...": "yes\n"
+  when: certbot_result|success
+
+ name: Deploying a cron job for certificate renewal { Let's encrypt }
   cron:
       name: Let's encrypt SSL Certificate Renewal
       state: present

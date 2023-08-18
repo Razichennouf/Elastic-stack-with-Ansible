@@ -1,0 +1,19 @@
+---
+- name: Automate Certbot Interactions
+  hosts: ubuntu
+  tasks:
+  - name: Run Certbot
+    command: certbot certonly --non-interactive --register-unsafely-without-email --nginx
+    args:
+        creates: /etc/letsencrypt/live/your_domain
+    register: certbot_result
+
+  - name: Answer Certbot Prompts
+    expect:
+        command: certbot certonly --register-unsafely-without-email
+        responses:
+          "(Enter 'c' to cancel):": "test@test.com\n"
+          "(Y)es/(N)o:": "yes\n"
+          "Would you be willing, once your first certificate is successfully issued...": "yes\n"
+    when: certbot_result|success
+

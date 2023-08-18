@@ -21,3 +21,7 @@ server {
         }
 
 }
+
+if ($host ~* "^\d+\.\d+\.\d+\.\d+$") {
+        return 301 https://info-association.duckdns.org$request_uri;
+    }
