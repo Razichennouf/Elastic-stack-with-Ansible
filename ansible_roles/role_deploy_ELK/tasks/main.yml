@@ -1,8 +1,5 @@
---
-# tasks file for deploy_ELK
-#
-#
-#
+---
+
 - name: Upgrade all apt packages
   apt: upgrade=dist force_apt_get=yes
 - name: Check if a reboot is needed for Debian and Ubuntu boxes
@@ -52,9 +49,9 @@
   notify: persist_elk
 - name: Installing NGINX Webserver
   apt:
-      name: 
+      name:
          - nginx
-         - certbot 
+         - certbot
          - python3-certbot-nginx
       state: latest
 
@@ -170,7 +167,7 @@
        src: /home/ubuntu/elastic_pw
   register: elastic_pw_val
 
-# Managing the keystore for secure rest //// Another new way to setup passwords without changing the elasticsearch parameters in kibana 
+# Managing the keystore for secure rest //// Another way to setup passwords without changing the elasticsearch parameters in kibana 
 - name: Adding Keystore with the exact parameter name in kibana.yml
   command: "/usr/share/kibana/bin/kibana-keystore add elasticsearch.username"
   args:
@@ -241,7 +238,7 @@
 #
 - name: "**************** Manual setup you have to do ******************"
   debug:
-       msg: 
+       msg:
           - "Now you have to make these commands : "
           - "Generate token from here => sudo /usr/share/elasticsearch/bin/elasticsearch-create-enrollment-token --scope kibana"
           - "Get the verificationcode from here => sudo /usr/share/kibana/bin/kibana-verification-code"
@@ -275,7 +272,7 @@
   command: certbot certonly --non-interactive --register-unsafely-without-email --nginx -d ansi-elk.duckdns.org -d www.ansi-elk.duckdns.org
   args:
         creates: /etc/letsencrypt/live/your_domain
- register: certbot_result
+  register: certbot_result
 
 - name: Answer Certbot Prompts
   expect:
@@ -286,7 +283,7 @@
           "Would you be willing, once your first certificate is successfully issued...": "yes\n"
   when: certbot_result|success
 
- name: Deploying a cron job for certificate renewal { Let's encrypt }
+- name: Deploying a cron job for certificate renewal { Let's encrypt }
   cron:
       name: Let's encrypt SSL Certificate Renewal
       state: present
