@@ -53,6 +53,18 @@
     ansible_become_method=sudo
     ansible_become_user=root
 </pre>
+  <section>
+    <h2>Securing Sensitive Data with Ansible Vault</h2>
+    <p>
+      In order to protect sensitive information, like Windows user passwords, contained within the inventory, Ansible Vault is employed. This ensures data confidentiality while allowing streamlined decryption at runtime using a single password.
+    </p>
+    <p>
+      For instance, the password for Windows user authentication has been encrypted within the inventory using Ansible Vault. This encryption guarantees that the password is stored securely, preventing unauthorized access.
+    </p>
+    <p>
+      Furthermore, the same password has been utilized across multiple vaults, enabling efficient decryption of all encrypted data during runtime using a single password. To execute this process, include the <code>--ask-vault-pass</code> flag when running Ansible commands, prompting you to provide the decryption password.
+    </p>
+  </section>
  <p><strong>Caution 2:</strong> Ansible Inventory might sometimes have an insider sensitive data so you need to <strong>encrypt</strong> the <strong>inventory</strong> and <strong>decrypt</strong> it in <strong>runtime</strong> </p>
  <pre>
    PS: vault password in this repository is : "RmoutdqousorALAs 11301123##2DDQ"
