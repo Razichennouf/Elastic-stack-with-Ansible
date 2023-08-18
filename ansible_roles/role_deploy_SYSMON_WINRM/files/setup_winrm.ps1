@@ -36,7 +36,7 @@ function Configure-AWSSpecificSettings {
 	    Write-Host "Invalid input. Please type 'yes' or 'no' to choose the environment."
 	}
 
-    Write-Host "AWS Specific Configuration Done"
+    Write-Host "Administrator password is now persistent"
 }
 
 function Configure-Firewall {
