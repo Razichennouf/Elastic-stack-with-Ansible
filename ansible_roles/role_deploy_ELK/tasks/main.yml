@@ -120,7 +120,9 @@
       regex: '^cluster.initial_master_nodes'
       line: '#cluster.initial_master_nodes'
       insertafter: EOF
-  notify: restart_elasticsearch
+- name: restart_elasticsearch
+  shell:  systemctl restart elasticsearch.service
+
   
 # Kibana
 - name: Configuring Kibana conf file {server.port}
@@ -149,6 +151,12 @@
       path: /etc/kibana/kibana.yml
       regex: '^#elasticsearch.hosts:'
       line: 'elasticsearch.hosts: ["https://localhost:9200"]'
+- name: restart_kibana
+  shell: systemctl restart kibana.service
+  
+- name: restart_logstash
+  shell: systemctl restart logstash.service
+
 
 - name: Generate the 3 keys
   shell: |
@@ -258,8 +266,8 @@
        msg:
           - "Now you have to make these commands : "
           - "Generate token from here => sudo /usr/share/elasticsearch/bin/elasticsearch-create-enrollment-token --scope kibana"
-          - "Get the verificationcode from here => sudo /usr/share/kibana/bin/kibana-verification-code"
-          - "Reset password for elastic user from here =>  sudo /usr/share/elasticsearch/bin/elasticsearch-reset-password -u elastic"
+          - "Get the verification code from here => sudo /usr/share/kibana/bin/kibana-verification-code"
+          - "Reset password for elastic user from here =>  sudo /usr/share/elasticsearch/bin/elasticsearch-reset-password -u elastic" ====> done
 
 
 # Directory layout
