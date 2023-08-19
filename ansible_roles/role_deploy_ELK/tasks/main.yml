@@ -121,7 +121,6 @@
 
   
 # Kibana
-
 # Already 5601 port
 #- name: Configuring Kibana conf file {server.port}
 #  lineinfile:
