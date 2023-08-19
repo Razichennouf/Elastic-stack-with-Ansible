@@ -2,13 +2,67 @@
 - name: playbook1
   hosts: ubuntu
   gather_facts: n
+  vars:
+    - DNS_registred: ansi-elk.duckdns.org
+    - www_DNS_registred: www.ansi-elk.duckdns.org
+    - server_tokens: off
   tasks:
-  - name: Adding Keystore with the exact parameter name in kibana.yml
-    command: "/usr/share/kibana/bin/kibana-keystore add elasticsearch.username"
-    args:
-        stdin: "elastic"
+  - name: Installing NGINX Webserver
+    apt:
+      name:
+         - nginx
+         - certbot
+         - python3-certbot-nginx
+      state: latest
+      
+  - name: Copy and render Nginx configuration file
+    template:
+        src: role_deploy_ELK/templates/default.j2
+        dest: /etc/nginx/sites-available/default
+        mode: '0644'
 
-  - name: Adding Keystore with the exact parameter name in kibana.yml
-    command: "/usr/share/kibana/bin/kibana-keystore add elasticsearch.password"
+  - name: Securing nginx with additional header layers of security
+    template:
+        src: role_deploy_ELK/templates/nginx.j2
+        dest: /etc/nginx/nginx.conf
+        mode: '0644'
+#- name: Deploying SSL certificate to NGINX via certbot tool
+#  shell : |
+#       certbot --nginx -d ansi-elk.duckdns.org -d www.ansi-elk.duckdns.org
+  - name: Run Certbot
+    command: certbot certonly --non-interactive --register-unsafely-without-email --nginx -d ansi-elk.duckdns.org -d www.ansi-elk.duckdns.org
     args:
-        stdin: "Rtdvs*0*=KCB0Nb4=ZLv"
+        creates: /etc/letsencrypt/live/your_domain
+    register: certbot_result
+
+  - name: Answer Certbot Prompts
+    expect:
+        command: certbot certonly --register-unsafely-without-email
+        responses:
+          "(Enter 'c' to cancel):": "test@test.com\n"
+          "(Y)es/(N)o:": "yes\n"
+          "Would you be willing, once your first certificate is successfully issued...": "yes\n"
+    when: certbot_result|success
+
+  - name: Deploying a cron job for certificate renewal { Let's encrypt }
+    cron:
+      name: Let's encrypt SSL Certificate Renewal
+      state: present
+      user: root
+      minute: '0'
+      hour: '12'
+      day: '*'
+      weekday: '*'
+      month: '*'
+      job: /usr/bin/certbot renew --quiet
+
+  - name: Fixing and redirecting the traffic from IpAddress to Domain name
+    lineinfile:
+        path: /etc/nginx/sites-available/default
+        insertafter: '} # managed by Certbot'
+        block: |
+            # Redirect IP addresses to the domain name
+            if ($host ~* "^\d+\.\d+\.\d+\.\d+$") {
+            return 301 https://info-association.duckdns.org$request_uri;
+            }
+
