@@ -177,7 +177,7 @@
 - name: Chaning elastic password
   shell: |
        yes | sudo /usr/share/elasticsearch/bin/elasticsearch-reset-password -u elastic | grep -oP 'New value: \K.*' > /home/ubuntu/elastic_pw
-       chmod 600 elastic_pw
+
     #'/New value:/ {print $NF}' output.txt
     #sed -n 's/New value: //p' output.txt
 
