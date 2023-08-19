@@ -6,4 +6,11 @@
      systemctl start filebeat.service
      systemctl enable metricbeat.service
      systemctl start metricbeat.serviceanagement
+- name: enabling elasticsearch module
+  shell: |
+    filebeat modules enable elasticsearch
+- name: deploying elasticsearch module config file
+  template:
+    src: elasticsearch.j2
+    dest: /etc/filebeat/modules.d/elasticsearch
 
