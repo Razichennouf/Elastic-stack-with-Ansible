@@ -172,6 +172,8 @@
        chmod 600 elastic_pw
     #'/New value:/ {print $NF}' output.txt
     #sed -n 's/New value: //p' output.txt
+    VDk-bgleGijRv=Fmz*Yu
+
 - name: retrieve the elastic_pw value
   slurp:
        src: /home/ubuntu/elastic_pw
@@ -216,7 +218,11 @@
 #      regex: '^#elasticsearch.password'
 #      line: 'elasticsearch.username: "${es_pwd}"'
 
-# May not be needed becarefull please
+
+
+# Advanced parameters used when we have a reverse proxy infront kibana
+# The elasticsearch parameter server.rewriteBasePath set to true when we have the server.basePath has a value in kibana.yml, used to tell Kibana if it should remove the basePath from requests it receives, and to prevent a deprecation warning at startup.
+
 #- name: Configuring Kibana conf to handle the reverse proxy requests {server.basePath}
 #  lineinfile:
 #      path: /etc/kibana/kibana.yml
@@ -229,6 +235,7 @@
 #        line: "server.rewriteBasePath: true"
 #        insertafter: EOF
 #  notify: restart_kibana
+
 
 # Configurations needed for single-node deployment
 #
