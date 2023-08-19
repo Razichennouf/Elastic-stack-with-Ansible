@@ -187,7 +187,7 @@
        src: /home/ubuntu/elastic_pw
   register: elastic_pw_val
 
-# Managing the keystore for secure rest //// Another way to setup passwords without changing the elasticsearch parameters in kibana 
+# Managing the keystore for secure rest //// Another way to setup passwords without changing the elasticsearch parameters in kibana  /// this should be done after token enrollment
 - name: Adding Keystore with the exact parameter name in kibana.yml
   command: "/usr/share/kibana/bin/kibana-keystore add elasticsearch.username"
   args:
@@ -199,32 +199,6 @@
         stdin: "{{ elastic_pw_val.content | b64decode }}"
 
 
-#- name: Create Kibana Keystore
-#  command: "/usr/share/kibana/bin/kibana-keystore create"
-#  args:
-#      creates: /etc/kibana/kibana.keystore
-#  register: keystore_created
-#  changed_when: keystore_created.rc == 0  # Mark as changed only if keystore was created
-#- name: Add Value to Kibana Keystore
-#  command: "/usr/share/kibana/bin/kibana-keystore add ES_PWD"
-#  args:
-#        stdin: "{{ elastic_pw_val }}\n"  # Provide the ES_PWD value from Ansible variable
-#   when: keystore_created.changed  # Only execute if keystore was created
-#- name: Confirm Keystore Overwrite
-#  command: "/bin/bash"
-#  args:
-#        stdin: "Y\n"  # Automatically answer 'Y' to overwrite prompt
-#  when: keystore_created.changed  # Only execute if keystore was created
-#- name: Appending the elasticsearch credentials in kibana config file
-#  lineinfile:
-#      path: /etc/kibana/kibana.yml
-#      regex: '^#elasticsearch.username:'
-#      line: 'elasticsearch.username: "elastic"'
-#- name: Appending the elasticsearch credentials in kibana config file
-#  lineinfile:
-#      path: /etc/kibana/kibana.yml
-#      regex: '^#elasticsearch.password'
-#      line: 'elasticsearch.username: "${es_pwd}"'
 
 
 
@@ -302,7 +276,7 @@
 #  shell : |
 #       certbot --nginx -d ansi-elk.duckdns.org -d www.ansi-elk.duckdns.org
 - name: Run Certbot
-  command: certbot certonly --non-interactive --register-unsafely-without-email --nginx -d ansi-elk.duckdns.org -d www.ansi-elk.duckdns.org --agree-tos 
+  command: certbot --non-interactive --register-unsafely-without-email --nginx -d ansi-elk.duckdns.org -d www.ansi-elk.duckdns.org --agree-tos 
   register: certbot_result
 
 - name: Answer Certbot Prompts
