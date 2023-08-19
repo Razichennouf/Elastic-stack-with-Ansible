@@ -8,5 +8,4 @@ ELK:
   - metricbeat
 DNS_registred: ansi-elk.duckdns.org
 www_DNS_registred: www.ansi-elk.duckdns.org
-server_tokens: off
 

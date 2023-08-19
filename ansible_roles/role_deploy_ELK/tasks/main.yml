@@ -1,5 +1,284 @@
 ---
+- name: Upgrade all apt packages to the latest version
+  shell: |
+      apt dist-upgrade -y 
+      apt update -y
+      apt upgrade -y
+  
+- name: Check if a reboot is needed for Debian and Ubuntu boxes
+  register: reboot_required_file
+  stat: path=/var/run/reboot-required get_md5=no
 
+- name: Reboot the Debian or Ubuntu server
+  reboot:
+        msg: "Reboot initiated by Ansible due to kernel updates"
+        connect_timeout: 5
+        reboot_timeout: 300
+        pre_reboot_delay: 0
+        post_reboot_delay: 30
+        test_command: uptime
+  when: reboot_required_file.stat.exists
+
+# Add-on tools
+#- name: Installing Visualizing and provisioning tools 
+#  package:
+#      name: "{{ item }}"
+#      state: latest
+#  loop:
+#    - nmon 
+#    - glances
+#    - iftop 
+#    - atop 
+#    - htop 
+#    - dstat 
+#    - smem
+
+- name: Import GPG key
+  shell: |
+       #wget -qO - https://artifacts.elastic.co/GPG-KEY-elasticsearch | sudo apt-key add -
+       apt-get install apt-transport-https
+
+- name: Add Elasticsearch repository and its keyrings to fix warning
+  shell: |
+       #echo "deb https://artifacts.elastic.co/packages/8.x/apt stable main" | sudo tee -a /etc/apt/sources.list.d/elastic-8.x.list
+       curl -fsSL https://artifacts.elastic.co/GPG-KEY-elasticsearch | sudo gpg --dearmor -o /usr/share/keyrings/elastic-archive-keyring.gpg
+       echo 'deb [signed-by=/usr/share/keyrings/elastic-archive-keyring.gpg] https://artifacts.elastic.co/packages/8.x/apt stable main' | sudo tee /etc/apt/sources.list.d/elastic-8.x.list
+       apt update -y
+       apt upgrade -y
+
+        
+- name: Update package cache
+  apt:
+     update_cache: yes
+
+- name: Install ELK stack
+  apt:
+       name: "{{ item }}"
+       state: latest
+
+  loop: "{{ ELK }}"
+- name: persist_elk
+  shell: |
+     systemctl enable elasticsearch
+     systemctl enable kibana
+     systemctl enable logstash
+
+
+# Configuring ELK 
+#
+#
+#
+- name: Configuring Elasticsearch conf file {Cluster name}
+  lineinfile:
+      path: /etc/elasticsearch/elasticsearch.yml
+      regex: '^#cluster.name'
+      line: 'cluster.name: Cluster_ansi'
+- name: Configuring Elasticsearch conf file {xpack.monitoring.collection}
+  lineinfile:
+      path: /etc/elasticsearch/elasticsearch.yml
+      regex: '^#xpack.monitoring.collection.enabled:'
+      line: 'xpack.monitoring.collection.enabled: true'
+- name: Configuring Elasticsearch conf file {xpack.monitoring.elasticsearch.collection}
+  lineinfile:
+      path: /etc/elasticsearch/elasticsearch.yml
+      regex: '^#xpack.monitoring.elasticsearch.collection.enabled:'
+      line: 'xpack.monitoring.elasticsearch.collection.enabled: true'
+- name: Configuring Elasticsearch conf file {node.name}
+  lineinfile:
+      path: /etc/elasticsearch/elasticsearch.yml
+      regex: '^#node.name:'
+      line: 'node.name: node-1'
+- name: Configuring Elasticsearch conf file {network.host}
+  lineinfile:
+      path: /etc/elasticsearch/elasticsearch.yml
+      regex: '^#network.host:'
+      line: 'network.host: 0.0.0.0'
+- name: Configuring Elasticsearch conf file {http.port}
+  lineinfile:
+      path: /etc/elasticsearch/elasticsearch.yml
+      regex: '^#http.port:'
+      line: 'http.port: 9200'
+- name: Setting up single-node
+  lineinfile:
+        path: /etc/elasticsearch/elasticsearch.yml
+        line: "discovery.type: single-node"
+        insertafter: EOF
+- name: Configuring Elasticsearch conf file {transport.host} Allowing other Hosts that are not in same network to join the cluster 
+  lineinfile:
+      path: /etc/elasticsearch/elasticsearch.yml
+      regex: '^#transport.host:'
+      line: 'transport.host: 0.0.0.0'
+
+- name: adding { http.port }
+  lineinfile:
+      path: /etc/elasticsearch/elasticsearch.yml
+      line: "http.host: 0.0.0.0"
+
+- name: Removing the master-nodes list
+  lineinfile:
+      path: /etc/elasticsearch/elasticsearch.yml
+      regex: '^cluster.initial_master_nodes'
+      line: '#cluster.initial_master_nodes'
+      insertafter: EOF
+- name: restart_elasticsearch
+  shell:  systemctl restart elasticsearch.service
+
+  
+# Kibana
+- name: Configuring Kibana conf file {server.port}
+  lineinfile:
+      path: /etc/kibana/kibana.yml
+      regex: '^#server.port:'
+      line: 'server.port: 5601'
+- name: Configuring Kibana conf file {server.host}
+  lineinfile:
+      path: /etc/kibana/kibana.yml
+      regex: '^#server.host:'
+      line: 'server.host: 0.0.0.0'
+- name: Configuring Kibana conf file {server.publicBaseUrl}
+  lineinfile:
+      path: /etc/kibana/kibana.yml
+      regex: '^#server.publicBaseUrl:'
+      line: 'server.publicBaseUrl: "https://ansi-elk.duckdns.org"'
+      insertafter: EOF
+- name: Configuring Kibana conf file {server.name}
+  lineinfile:
+      path: /etc/kibana/kibana.yml
+      regex: '^#server.name:'
+      line: 'server.name: "ansi-elk"'
+- name: Configuring Kibana conf file {elasticsearch.hosts}
+  lineinfile:
+      path: /etc/kibana/kibana.yml
+      regex: '^#elasticsearch.hosts:'
+      line: 'elasticsearch.hosts: ["https://localhost:9200"]'
+- name: restart_kibana
+  shell: systemctl restart kibana.service
+  
+- name: restart_logstash
+  shell: systemctl restart logstash.service
+
+
+- name: Generate the 3 keys
+  shell: |
+        /usr/share/kibana/bin/kibana-encryption-keys generate --force | grep -A 3 "Settings:" | grep -v "Settings:" > /home/ubuntu/params_xpack
+        chmod 600 /home/ubuntu/params_xpack
+- name: retrieve the keys with xpack params
+  slurp:
+       src: /home/ubuntu/params_xpack
+  register: params_xpack
+
+- name: Inserting params
+  lineinfile:
+      path: /etc/kibana/kibana.yml
+      line: "{{ params_xpack.content | b64decode }}"
+      insertafter: EOF
+
+# Changing elastic password and saving it in the current directory for later use in 600 mode
+- name: Chaning elastic password
+  shell: |
+       yes | sudo /usr/share/elasticsearch/bin/elasticsearch-reset-password -u elastic | grep -oP 'New value: \K.*' > /home/ubuntu/elastic_pw
+
+    #'/New value:/ {print $NF}' output.txt
+    #sed -n 's/New value: //p' output.txt
+
+
+- name: retrieve the elastic_pw value
+  slurp:
+       src: /home/ubuntu/elastic_pw
+  register: elastic_pw_val
+
+# Managing the keystore for secure rest //// Another way to setup passwords without changing the elasticsearch parameters in kibana 
+- name: Adding Keystore with the exact parameter name in kibana.yml
+  command: "/usr/share/kibana/bin/kibana-keystore add elasticsearch.username"
+  args:
+        stdin: "elastic"
+
+- name: Adding Keystore with the exact parameter name in kibana.yml
+  command: "/usr/share/kibana/bin/kibana-keystore add elasticsearch.password"
+  args:
+        stdin: "{{ elastic_pw_val.content | b64decode }}"
+
+
+#- name: Create Kibana Keystore
+#  command: "/usr/share/kibana/bin/kibana-keystore create"
+#  args:
+#      creates: /etc/kibana/kibana.keystore
+#  register: keystore_created
+#  changed_when: keystore_created.rc == 0  # Mark as changed only if keystore was created
+#- name: Add Value to Kibana Keystore
+#  command: "/usr/share/kibana/bin/kibana-keystore add ES_PWD"
+#  args:
+#        stdin: "{{ elastic_pw_val }}\n"  # Provide the ES_PWD value from Ansible variable
+#   when: keystore_created.changed  # Only execute if keystore was created
+#- name: Confirm Keystore Overwrite
+#  command: "/bin/bash"
+#  args:
+#        stdin: "Y\n"  # Automatically answer 'Y' to overwrite prompt
+#  when: keystore_created.changed  # Only execute if keystore was created
+#- name: Appending the elasticsearch credentials in kibana config file
+#  lineinfile:
+#      path: /etc/kibana/kibana.yml
+#      regex: '^#elasticsearch.username:'
+#      line: 'elasticsearch.username: "elastic"'
+#- name: Appending the elasticsearch credentials in kibana config file
+#  lineinfile:
+#      path: /etc/kibana/kibana.yml
+#      regex: '^#elasticsearch.password'
+#      line: 'elasticsearch.username: "${es_pwd}"'
+
+
+
+# Advanced parameters used when we have a reverse proxy infront kibana
+# The elasticsearch parameter server.rewriteBasePath set to true when we have the server.basePath has a value in kibana.yml, used to tell Kibana if it should remove the basePath from requests it receives, and to prevent a deprecation warning at startup.
+
+#- name: Configuring Kibana conf to handle the reverse proxy requests {server.basePath}
+#  lineinfile:
+#      path: /etc/kibana/kibana.yml
+#      regex: '^#server.basePath:'
+#      line: 'server.basePath: "/login"'
+
+#- name: Configuring Kibana conf to handle the reverse proxy requests {server.rewriteBasePath}
+#  lineinfile:
+#        path: /etc/elasticsearch/elasticsearch.yml
+#        line: "server.rewriteBasePath: true"
+#        insertafter: EOF
+#  notify: restart_kibana
+
+
+# Configurations needed for single-node deployment
+#
+#
+#
+- name: Setting up number_of_replicas to 0 via API call
+  shell: |
+       curl -k -H "Content-Type: application/json" -XPUT https://localhost:9200/*/_settings -d '{ "index" : { "number_of_replicas" : 0 } }' -u elastic:"{{ elastic_pw_val.content | b64decode }}"
+  register: curl_res
+- name: Printing results
+  debug:
+     var: curl_res.stdout_lines
+
+# Manual setup with manual guidance
+#
+#
+#
+- name: "**************** Manual setup you have to do ******************"
+  debug:
+       msg:
+          - "Now you have to make these commands : "
+          - "Generate token from here => sudo /usr/share/elasticsearch/bin/elasticsearch-create-enrollment-token --scope kibana"
+          - "Get the verification code from here => sudo /usr/share/kibana/bin/kibana-verification-code"
+          - "Reset password for elastic user from here =>  sudo /usr/share/elasticsearch/bin/elasticsearch-reset-password -u elastic" ====> done
+
+
+# Directory layout
+#
+#
+#
+
+# Nginx deployment
+#
+#
+#
 - name: Installing NGINX Webserver
   apt:
       name:
@@ -23,9 +302,7 @@
 #  shell : |
 #       certbot --nginx -d ansi-elk.duckdns.org -d www.ansi-elk.duckdns.org
 - name: Run Certbot
-  command: certbot certonly --non-interactive --register-unsafely-without-email --nginx -d ansi-elk.duckdns.org -d www.ansi-elk.duckdns.org
-  args:
-        creates: /etc/letsencrypt/live/your_domain
+  command: certbot certonly --non-interactive --register-unsafely-without-email --nginx -d ansi-elk.duckdns.org -d www.ansi-elk.duckdns.org --agree-tos 
   register: certbot_result
 
 - name: Answer Certbot Prompts
