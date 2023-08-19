@@ -6,9 +6,35 @@
      systemctl start filebeat.service
      systemctl enable metricbeat.service
      systemctl start metricbeat.serviceanagement
+- name: retrieve the elastic_pw value
+  slurp:
+       src: /home/ubuntu/elastic_pw
+  register: elastic_pw_val
 
-- name: Configuring filebeat.yml file
-  
+# Managing the keystore for secure rest //// Another way to setup passwords without changing the elasticsearch parameters in kibana  /// this should be done after token enrollment
+# Don't use a privileged user like elastic
+- name: Creating a keystore for the stores in filebeat
+  shell: filebeat keystore create
+- name: Adding Keystore with the exact parameter name in filebeat.yml
+  command: "filebeat add username"
+  args:
+        stdin: "elastic"
+- name: Adding Keystore with the exact parameter name in filebeat.yml
+  command: "filebeat keystore add password"
+  args:
+        stdin: "{{ elastic_pw_val.content | b64decode }}"
+
+     
+- name: Configuring filebeat.yml file {output.filebeat}
+  lineinfile:
+       path: /etc/filebeat/filebeat.yml 
+       regex: "^reload.enabled: false"
+       line: "reload.enabled: true"
+- name: Configruring filebeat.yml {output.elasticsearch}
+  lineinfile:
+       path: /etc/filebeat/filebeat.yml 
+       regex: '^#protocol: "https"'
+       line: 'protocol: "https"'
      
 - name: enabling elasticsearch, Nginx, System modules
   shell: |
