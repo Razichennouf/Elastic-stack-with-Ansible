@@ -1,5 +1,162 @@
 ---
+- name: Upgrade all apt packages to the latest version
+  shell: |
+      apt dist-upgrade -y 
+      apt update -y
+      apt upgrade -y
+  
+- name: Check if a reboot is needed for Debian and Ubuntu boxes
+  register: reboot_required_file
+  stat: path=/var/run/reboot-required get_md5=no
 
+- name: Reboot the Debian or Ubuntu server
+  reboot:
+        msg: "Reboot initiated by Ansible due to kernel updates"
+        connect_timeout: 5
+        reboot_timeout: 300
+        pre_reboot_delay: 0
+        post_reboot_delay: 30
+        test_command: uptime
+  when: reboot_required_file.stat.exists
+
+# Add-on tools
+#- name: Installing Visualizing and provisioning tools 
+#  package:
+#      name: "{{ item }}"
+#      state: latest
+#  loop:
+#    - nmon 
+#    - glances
+#    - iftop 
+#    - atop 
+#    - htop 
+#    - dstat 
+#    - smem
+
+- name: Add Elasticsearch repository and its keyrings to fix warning
+  shell: |
+       apt-get install apt-transport-https
+       #echo "deb https://artifacts.elastic.co/packages/8.x/apt stable main" | sudo tee -a /etc/apt/sources.list.d/elastic-8.x.list
+       curl -fsSL https://artifacts.elastic.co/GPG-KEY-elasticsearch | sudo gpg --dearmor -o /usr/share/keyrings/elastic-archive-keyring.gpg
+       echo 'deb [signed-by=/usr/share/keyrings/elastic-archive-keyring.gpg] https://artifacts.elastic.co/packages/8.x/apt stable main' | sudo tee /etc/apt/sources.list.d/elastic-8.x.list
+       apt update -y
+       apt upgrade -y
+
+        
+- name: Update package cache
+  apt:
+     update_cache: yes
+
+- name: Install ELK stack
+  apt:
+       name: "{{ item }}"
+       state: latest
+
+  loop: "{{ ELK }}"
+- name: persist_elk
+  shell: |
+     systemctl enable elasticsearch
+     systemctl enable kibana
+     systemctl enable logstash
+
+
+# Configuring ELK 
+#
+#
+#
+- name: Configuring Elasticsearch conf file {Cluster name}
+  lineinfile:
+      path: /etc/elasticsearch/elasticsearch.yml
+      regex: '^#cluster.name'
+      line: 'cluster.name: Cluster_ansi'
+- name: Configuring Elasticsearch conf file {xpack.monitoring.collection}
+  lineinfile:
+      path: /etc/elasticsearch/elasticsearch.yml
+      regex: '^#xpack.monitoring.collection.enabled:'
+      line: 'xpack.monitoring.collection.enabled: true'
+- name: Configuring Elasticsearch conf file {xpack.monitoring.elasticsearch.collection}
+  lineinfile:
+      path: /etc/elasticsearch/elasticsearch.yml
+      regex: '^#xpack.monitoring.elasticsearch.collection.enabled:'
+      line: 'xpack.monitoring.elasticsearch.collection.enabled: true'
+- name: Configuring Elasticsearch conf file {node.name}
+  lineinfile:
+      path: /etc/elasticsearch/elasticsearch.yml
+      regex: '^#node.name:'
+      line: 'node.name: node-1'
+- name: Configuring Elasticsearch conf file {network.host}
+  lineinfile:
+      path: /etc/elasticsearch/elasticsearch.yml
+      regex: '^#network.host:'
+      line: 'network.host: 0.0.0.0'
+- name: Configuring Elasticsearch conf file {http.port}
+  lineinfile:
+      path: /etc/elasticsearch/elasticsearch.yml
+      regex: '^#http.port:'
+      line: 'http.port: 9200'
+- name: Setting up single-node
+  lineinfile:
+        path: /etc/elasticsearch/elasticsearch.yml
+        line: "discovery.type: single-node"
+        insertafter: EOF
+- name: Configuring Elasticsearch conf file {transport.host} Allowing other Hosts that are not in same network to join the cluster 
+  lineinfile:
+      path: /etc/elasticsearch/elasticsearch.yml
+      regex: '^#transport.host:'
+      line: 'transport.host: 0.0.0.0'
+
+- name: adding { http.port }
+  lineinfile:
+      path: /etc/elasticsearch/elasticsearch.yml
+      line: "http.host: 0.0.0.0"
+
+- name: Removing the master-nodes list
+  lineinfile:
+      path: /etc/elasticsearch/elasticsearch.yml
+      regex: '^cluster.initial_master_nodes'
+      line: '#cluster.initial_master_nodes'
+      insertafter: EOF
+- name: restart_elasticsearch
+  shell:  systemctl restart elasticsearch.service
+
+  
+# Kibana
+# Already 5601 port
+#- name: Configuring Kibana conf file {server.port}
+#  lineinfile:
+#      path: /etc/kibana/kibana.yml
+#      regex: '^#server.port:'
+#      line: 'server.port: 5601'
+
+# instead of 0.0.0.0 it is already behind nginx, and localhost by default
+#- name: Configuring Kibana conf file {server.host}
+#  lineinfile:
+#      path: /etc/kibana/kibana.yml
+#      regex: '^#server.host:'
+#      line: 'server.host: localhost' 
+- name: Configuring Kibana conf file {server.publicBaseUrl}
+  lineinfile:
+      path: /etc/kibana/kibana.yml
+      regex: '^#server.publicBaseUrl:'
+      line: 'server.publicBaseUrl: "https://ansi-elk.duckdns.org"'
+      insertafter: EOF
+- name: Configuring Kibana conf file {server.name}
+  lineinfile:
+      path: /etc/kibana/kibana.yml
+      regex: '^#server.name:'
+      line: 'server.name: "ansi-elk"'
+# Already done automatically
+#- name: Configuring Kibana conf file {elasticsearch.hosts}
+#  lineinfile:
+#      path: /etc/kibana/kibana.yml
+#      regex: '^#elasticsearch.hosts:'
+#      line: 'elasticsearch.hosts: ["https://localhost:9200"]'
+- name: Kibana auto configuration
+  debug:
+       msg: "Now all of the certificate fingerprint of elasticsearch to ensure communication and the private ip address of the elasticsearch node will all be automatically added to the kibana.yml"
+- name: Gathering elastic search token for kibana auto configuration
+  shell: |
+        /usr/share/elasticsearch/bin/elasticsearch-create-enrollment-token --scope kibana > /home/ubuntu/elasticsearch_token
 - name: retrieve the elasticsearch_token
   slurp:
        src: /home/ubuntu/elasticsearch_token
@@ -140,6 +297,17 @@
       weekday: '*'
       month: '*'
       job: /usr/bin/certbot renew --quiet
+
+# Configuring beats 
+- name: Enabling metricbeat and starting it
+  shell: |
+     systemctl enable filebeat.service
+     systemctl start filebeat.service
+     systemctl enable metricbeat.service
+     systemctl start metricbeat.service
+     
+  
+
 
 # To fix the redirection from ip to domain name ======> Only when port 80 is open
 #- name: Fixing and redirecting the traffic from IpAddress to Domain name
