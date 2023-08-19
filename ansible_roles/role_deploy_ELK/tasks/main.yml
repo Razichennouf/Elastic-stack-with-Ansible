@@ -152,6 +152,22 @@
 #      path: /etc/kibana/kibana.yml
 #      regex: '^#elasticsearch.hosts:'
 #      line: 'elasticsearch.hosts: ["https://localhost:9200"]'
+- name: Kibana auto configuration
+  debug:
+       msg: "Now all of the certificate fingerprint of elasticsearch to ensure communication and the private ip address of the elasticsearch node will all be automatically added to the kibana.yml"
+- name: Gathering elastic search token for kibana auto configuration
+  shell: |
+        /usr/share/elasticsearch/bin/elasticsearch-create-enrollment-token --scope kibana > /home/ubuntu/elasticsearch_token
+- name: retrieve the elasticsearch_token
+  slurp:
+       src: /home/ubuntu/elasticsearch_token
+  register: elastic_token
+  
+- name: Starting kibana autoconfiguration
+  command: "/usr/share/kibana/bin/kibana-setup"
+  args:
+        stdin: "{{ elastic_token }}"
+
 - name: restart_kibana
   shell: systemctl restart kibana.service
   
@@ -191,16 +207,16 @@
 
 # Managing the keystore for secure rest //// Another way to setup passwords without changing the elasticsearch parameters in kibana  /// this should be done after token enrollment
 # Don't use a privileged user like elastic
-- name: Creating a keystore for the stores
-  shell: /usr/share/kibana/bin/kibana-keystore create
-- name: Adding Keystore with the exact parameter name in kibana.yml
-  command: "/usr/share/kibana/bin/kibana-keystore add elasticsearch.username"
-  args:
-        stdin: "kibana_system"
-- name: Adding Keystore with the exact parameter name in kibana.yml
-  command: "/usr/share/kibana/bin/kibana-keystore add elasticsearch.password"
-  args:
-        stdin: "{{ elastic_pw_val.content | b64decode }}"
+#- name: Creating a keystore for the stores
+#  shell: /usr/share/kibana/bin/kibana-keystore create
+#- name: Adding Keystore with the exact parameter name in kibana.yml
+#  command: "/usr/share/kibana/bin/kibana-keystore add elasticsearch.username"
+#  args:
+#        stdin: "elastic"
+#- name: Adding Keystore with the exact parameter name in kibana.yml
+#  command: "/usr/share/kibana/bin/kibana-keystore add elasticsearch.password"
+#  args:
+#        stdin: "{{ elastic_pw_val.content | b64decode }}"
 
 #=========================================================
 
@@ -234,18 +250,6 @@
 - name: Printing results
   debug:
      var: curl_res.stdout_lines
-
-# Manual setup with manual guidance
-#
-#
-#
-- name: "**************** Manual setup you have to do ******************"
-  debug:
-       msg:
-          - "Now you have to make these commands : "
-          - "Generate token from here => sudo /usr/share/elasticsearch/bin/elasticsearch-create-enrollment-token --scope kibana"
-          - "Get the verification code from here => sudo /usr/share/kibana/bin/kibana-verification-code"
-          - "Reset password for elastic user from here =>  sudo /usr/share/elasticsearch/bin/elasticsearch-reset-password -u elastic" #====> done
 
 
 # Directory layout
@@ -295,7 +299,7 @@
       month: '*'
       job: /usr/bin/certbot renew --quiet
 
-# To fix the redirection from ip to domain name
+# To fix the redirection from ip to domain name ======> Only when port 80 is open
 #- name: Fixing and redirecting the traffic from IpAddress to Domain name
 #  lineinfile:
 #        path: /etc/nginx/sites-available/default
