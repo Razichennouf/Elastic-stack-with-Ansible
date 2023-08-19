@@ -217,16 +217,16 @@
 #      line: 'elasticsearch.username: "${es_pwd}"'
 
 # May not be needed becarefull please
-- name: Configuring Kibana conf to handle the reverse proxy requests {server.basePath}
-  lineinfile:
-      path: /etc/kibana/kibana.yml
-      regex: '^#server.basePath:'
-      line: 'server.basePath: "/"'
+#- name: Configuring Kibana conf to handle the reverse proxy requests {server.basePath}
+#  lineinfile:
+#      path: /etc/kibana/kibana.yml
+#      regex: '^#server.basePath:'
+#      line: 'server.basePath: "/login"'
 
 #- name: Configuring Kibana conf to handle the reverse proxy requests {server.rewriteBasePath}
 #  lineinfile:
 #        path: /etc/elasticsearch/elasticsearch.yml
-#        line: "server.rewriteBasePath: false"
+#        line: "server.rewriteBasePath: true"
 #        insertafter: EOF
 #  notify: restart_kibana
 
