@@ -33,13 +33,9 @@
 #    - dstat 
 #    - smem
 
-- name: Import GPG key
-  shell: |
-       #wget -qO - https://artifacts.elastic.co/GPG-KEY-elasticsearch | sudo apt-key add -
-       apt-get install apt-transport-https
-
 - name: Add Elasticsearch repository and its keyrings to fix warning
   shell: |
+       apt-get install apt-transport-https
        #echo "deb https://artifacts.elastic.co/packages/8.x/apt stable main" | sudo tee -a /etc/apt/sources.list.d/elastic-8.x.list
        curl -fsSL https://artifacts.elastic.co/GPG-KEY-elasticsearch | sudo gpg --dearmor -o /usr/share/keyrings/elastic-archive-keyring.gpg
        echo 'deb [signed-by=/usr/share/keyrings/elastic-archive-keyring.gpg] https://artifacts.elastic.co/packages/8.x/apt stable main' | sudo tee /etc/apt/sources.list.d/elastic-8.x.list
@@ -125,16 +121,20 @@
 
   
 # Kibana
-- name: Configuring Kibana conf file {server.port}
-  lineinfile:
-      path: /etc/kibana/kibana.yml
-      regex: '^#server.port:'
-      line: 'server.port: 5601'
-- name: Configuring Kibana conf file {server.host}
-  lineinfile:
-      path: /etc/kibana/kibana.yml
-      regex: '^#server.host:'
-      line: 'server.host: 0.0.0.0'
+
+# Already 5601 port
+#- name: Configuring Kibana conf file {server.port}
+#  lineinfile:
+#      path: /etc/kibana/kibana.yml
+#      regex: '^#server.port:'
+#      line: 'server.port: 5601'
+
+# instead of 0.0.0.0 it is already behind nginx, and localhost by default
+#- name: Configuring Kibana conf file {server.host}
+#  lineinfile:
+#      path: /etc/kibana/kibana.yml
+#      regex: '^#server.host:'
+#      line: 'server.host: localhost' 
 - name: Configuring Kibana conf file {server.publicBaseUrl}
   lineinfile:
       path: /etc/kibana/kibana.yml
@@ -146,11 +146,12 @@
       path: /etc/kibana/kibana.yml
       regex: '^#server.name:'
       line: 'server.name: "ansi-elk"'
-- name: Configuring Kibana conf file {elasticsearch.hosts}
-  lineinfile:
-      path: /etc/kibana/kibana.yml
-      regex: '^#elasticsearch.hosts:'
-      line: 'elasticsearch.hosts: ["https://localhost:9200"]'
+# Already done automatically
+#- name: Configuring Kibana conf file {elasticsearch.hosts}
+#  lineinfile:
+#      path: /etc/kibana/kibana.yml
+#      regex: '^#elasticsearch.hosts:'
+#      line: 'elasticsearch.hosts: ["https://localhost:9200"]'
 - name: restart_kibana
   shell: systemctl restart kibana.service
   
@@ -173,32 +174,35 @@
       line: "{{ params_xpack.content | b64decode }}"
       insertafter: EOF
 
+
+
 # Changing elastic password and saving it in the current directory for later use in 600 mode
 - name: Chaning elastic password
   shell: |
-       yes | sudo /usr/share/elasticsearch/bin/elasticsearch-reset-password -u elastic | grep -oP 'New value: \K.*' > /home/ubuntu/elastic_pw
+     yes | sudo /usr/share/elasticsearch/bin/elasticsearch-reset-password -u elastic | grep -oP 'New value: \K.*' > /home/ubuntu/elastic_pw
+     
 
     #'/New value:/ {print $NF}' output.txt
     #sed -n 's/New value: //p' output.txt
-
-
 - name: retrieve the elastic_pw value
   slurp:
        src: /home/ubuntu/elastic_pw
   register: elastic_pw_val
 
 # Managing the keystore for secure rest //// Another way to setup passwords without changing the elasticsearch parameters in kibana  /// this should be done after token enrollment
+# Don't use a privileged user like elastic
+- name: Creating a keystore for the stores
+  shell: /usr/share/kibana/bin/kibana-keystore create
 - name: Adding Keystore with the exact parameter name in kibana.yml
   command: "/usr/share/kibana/bin/kibana-keystore add elasticsearch.username"
   args:
-        stdin: "elastic"
-
+        stdin: "kibana_system"
 - name: Adding Keystore with the exact parameter name in kibana.yml
   command: "/usr/share/kibana/bin/kibana-keystore add elasticsearch.password"
   args:
         stdin: "{{ elastic_pw_val.content | b64decode }}"
 
-
+#=========================================================
 
 
 
@@ -241,7 +245,7 @@
           - "Now you have to make these commands : "
           - "Generate token from here => sudo /usr/share/elasticsearch/bin/elasticsearch-create-enrollment-token --scope kibana"
           - "Get the verification code from here => sudo /usr/share/kibana/bin/kibana-verification-code"
-          - "Reset password for elastic user from here =>  sudo /usr/share/elasticsearch/bin/elasticsearch-reset-password -u elastic" ====> done
+          - "Reset password for elastic user from here =>  sudo /usr/share/elasticsearch/bin/elasticsearch-reset-password -u elastic" #====> done
 
 
 # Directory layout
@@ -277,16 +281,7 @@
 #       certbot --nginx -d ansi-elk.duckdns.org -d www.ansi-elk.duckdns.org
 - name: Run Certbot
   command: certbot --non-interactive --register-unsafely-without-email --nginx -d ansi-elk.duckdns.org -d www.ansi-elk.duckdns.org --agree-tos 
-  register: certbot_result
 
-- name: Answer Certbot Prompts
-  expect:
-        command: certbot certonly --register-unsafely-without-email
-        responses:
-          "(Enter 'c' to cancel):": "test@test.com\n"
-          "(Y)es/(N)o:": "yes\n"
-          "Would you be willing, once your first certificate is successfully issued...": "yes\n"
-  when: certbot_result|success
 
 - name: Deploying a cron job for certificate renewal { Let's encrypt }
   cron:
@@ -300,12 +295,13 @@
       month: '*'
       job: /usr/bin/certbot renew --quiet
 
-- name: Fixing and redirecting the traffic from IpAddress to Domain name
-  lineinfile:
-        path: /etc/nginx/sites-available/default
-        insertafter: '} # managed by Certbot'
-        block: |
+# To fix the redirection from ip to domain name
+#- name: Fixing and redirecting the traffic from IpAddress to Domain name
+#  lineinfile:
+#        path: /etc/nginx/sites-available/default
+#        insertafter: '} # managed by Certbot'
+#        block: |
             # Redirect IP addresses to the domain name
-            if ($host ~* "^\d+\.\d+\.\d+\.\d+$") {
-            return 301 https://info-association.duckdns.org$request_uri;
-            }
+#            if ($host ~* "^\d+\.\d+\.\d+\.\d+$") {
+#            return 301 https://info-association.duckdns.org$request_uri;
+#            }
