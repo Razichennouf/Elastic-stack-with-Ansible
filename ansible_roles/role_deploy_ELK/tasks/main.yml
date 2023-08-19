@@ -172,7 +172,7 @@
        chmod 600 elastic_pw
     #'/New value:/ {print $NF}' output.txt
     #sed -n 's/New value: //p' output.txt
-    VDk-bgleGijRv=Fmz*Yu
+
 
 - name: retrieve the elastic_pw value
   slurp:
@@ -180,15 +180,15 @@
   register: elastic_pw_val
 
 # Managing the keystore for secure rest //// Another way to setup passwords without changing the elasticsearch parameters in kibana 
-#- name: Adding Keystore with the exact parameter name in kibana.yml
-#  command: "/usr/share/kibana/bin/kibana-keystore add elasticsearch.username"
-#  args:
-#        stdin: "elastic"
+- name: Adding Keystore with the exact parameter name in kibana.yml
+  command: "/usr/share/kibana/bin/kibana-keystore add elasticsearch.username"
+  args:
+        stdin: "elastic"
 
-#- name: Adding Keystore with the exact parameter name in kibana.yml
-#  command: "/usr/share/kibana/bin/kibana-keystore add elasticsearch.password"
-#  args:
-#        stdin: "{{ elastic_pw_val.content | b64decode }}"
+- name: Adding Keystore with the exact parameter name in kibana.yml
+  command: "/usr/share/kibana/bin/kibana-keystore add elasticsearch.password"
+  args:
+        stdin: "{{ elastic_pw_val.content | b64decode }}"
 
 
 #- name: Create Kibana Keystore
