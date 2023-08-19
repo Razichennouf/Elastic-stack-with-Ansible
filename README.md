@@ -16,6 +16,11 @@
     <li>🔐 <strong>WinRM Certificate Management</strong>: Automates the creation and management of WinRM certificates on Windows machines, securing remote management channels with encrypted communication.</li>
     <li>👤 <strong>User Management</strong>: Sets up dedicated automation users on Windows machines for executing remote tasks securely.</li>
   </ul>
+   <h1>Ansible advanced in automation tips :</h1>
+   
+   <ul>
+     <li> To specify the method and the user to be used for privilege escalation while we are in a hytirogene envirenment (Windows, Linux) we should not specify it on ansible.cfg to prevent conflict errors thats we we are going to specify all in the inventory variables or inside group_vars <b>In windows </b><code>ansible_become_method= runas</code> and <b>In Linux </b><code>ansible_become_method=sudo</code></li>
+   </ul>
     <h1>Windows WinRM Deployment Guide</h1>
 
   <h2>Important Note for AWS Users</h2>
