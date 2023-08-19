@@ -197,9 +197,9 @@
   shell: |
      yes | sudo /usr/share/elasticsearch/bin/elasticsearch-reset-password -u elastic | grep -oP 'New value: \K.*' > /home/ubuntu/elastic_pw
      
-
-    #'/New value:/ {print $NF}' output.txt
-    #sed -n 's/New value: //p' output.txt
+    # This is another method for the regex parsing
+	    #'/New value:/ {print $NF}' output.txt
+	    #sed -n 's/New value: //p' output.txt
 - name: retrieve the elastic_pw value
   slurp:
        src: /home/ubuntu/elastic_pw
