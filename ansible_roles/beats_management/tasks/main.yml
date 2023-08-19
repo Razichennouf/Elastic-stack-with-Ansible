@@ -1,0 +1,8 @@
+---
+# tasks file for beats_m# Configuring beats 
+- name: Enabling metricbeat and starting it
+  shell: |
+     systemctl enable filebeat.service
+     systemctl start filebeat.service
+     systemctl enable metricbeat.service
+     systemctl start metricbeat.serviceanagement
