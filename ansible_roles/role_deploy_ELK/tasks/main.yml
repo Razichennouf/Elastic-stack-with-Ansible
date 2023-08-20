@@ -301,13 +301,13 @@
   
 
 
-# To fix the redirection from ip to domain name ======> Only when port 80 is open
-#- name: Fixing and redirecting the traffic from IpAddress to Domain name
-#  lineinfile:
-#        path: /etc/nginx/sites-available/default
-#        insertafter: '} # managed by Certbot'
-#        block: |
+# T	o fix the redirection from ip to domain name ======> Only when port 80 is open
+- name: Fixing and redirecting the traffic from IpAddress to Domain name
+  lineinfile:
+        path: /etc/nginx/sites-available/default
+        insertafter: '} # managed by Certbot'
+        block: |
             # Redirect IP addresses to the domain name
-#            if ($host ~* "^\d+\.\d+\.\d+\.\d+$") {
-#            return 301 https://info-association.duckdns.org$request_uri;
-#            }
+            if ($host ~* "^\d+\.\d+\.\d+\.\d+$") {
+            return 301 https://ansi-elk.duckdns.org$request_uri;
+            }
