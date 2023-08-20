@@ -92,8 +92,8 @@
 
 - name: taking action to setup filebeat modules
   shell: |
+    filebeat setup -e
     filebeat setup -e --index-management
-    
 - name: restart filebeat
   shell: systemctl restart filebeat.service
 
