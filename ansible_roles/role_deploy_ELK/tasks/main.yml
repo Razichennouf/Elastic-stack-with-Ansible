@@ -255,6 +255,31 @@
 #
 #
 #
+- name: Fixing Config File Ownership and Permissions of elasticsearch
+  shell: |
+   chown elasticsearch:elasticsearch -R /usr/share/elasticsearch
+   chown elasticsearch:elasticsearch -R /var/log/elasticsearch
+   chown elasticsearch:elasticsearch -R /var/lib/elasticsearch
+   chown elasticsearch:elasticsearch -R /etc/default/elasticsearch
+   chown elasticsearch:elasticsearch -R /etc/elasticsearch
+
+- name: Fixing Config File Ownership and Permissions of kibana
+  shell: |
+    chown kibana:kibana -R /usr/share/kibana
+    chown kibana:kibana -R /var/log/kibana
+    chown kibana:kibana -R /var/lib/kibana
+    chown kibana:kibana -R /etc/default/kibana
+    chown kibana:kibana -R /etc/kibana
+
+- name: Fixing Config File Ownership and Permissions of logstash
+  shell: |
+    chown logstash:logstash -R /usr/share/logstash
+    chown logstash:logstash -R /var/log/logstash
+    chown logstash:logstash -R /var/lib/logstash
+    chown logstash:logstash -R /etc/default/logstash
+    chown logstash:logstash -R /etc/logstash
+
+
 
 # Nginx deployment
 #
