@@ -1,0 +1,13 @@
+---
+- name: enabling 30 days trial
+  hosts: ubuntu
+  gather_facts: n
+  become: t
+  vars_files:
+     - locked_cred
+  tasks:
+  - shell: |
+       curl -k -X POST "https://localhost:9200/_license/start_trial?acknowledge=true" -u  "{{ elastic_user }}":"{{ elastic_pw }}"
+    register: res
+  - debug: 
+       msg: "{{ res.stdout_lines }}"
