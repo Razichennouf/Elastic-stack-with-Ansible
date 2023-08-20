@@ -77,13 +77,13 @@
     
 - name: deploying elasticsearch module config file
   template:
-    src: elasticsearch.yml.j2
+    src: elasticsearch.j2
     dest: /etc/filebeat/modules.d/elasticsearch.yml
 
 - name: deploying NGINX module config file
   template:
     src: nginx.j2
-    dest: /etc/filebeat/modules.d/nginx    
+    dest: /etc/filebeat/modules.d/nginx.yml    
 
 - name: deploying SYSTEM module config file { SYSLOG }
   template:
