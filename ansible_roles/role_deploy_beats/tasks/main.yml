@@ -1,21 +1,123 @@
 ---
+# tasks file for beats_m# Configuring beats 
+- name: Enabling metricbeat and starting it
+  shell: |
+     systemctl enable filebeat.service
+     systemctl start filebeat.service
+     systemctl enable metricbeat.service
+     systemctl start metricbeat.serviceanagement
+- name: retrieve the elastic_pw value
+  slurp:
+       src: /home/ubuntu/elastic_pw
+  register: elastic_pw_val
+
+- name: enabling elasticsearch, Nginx, System modules
+  shell: |
+    filebeat modules enable elasticsearch
+    filebeat modules enable nginx
+    filebeat modules enable system
+
+- name: Configuring filebeat.yml file {output.filebeat}
+  lineinfile:
+       path: /etc/filebeat/filebeat.yml 
+       regex: "  reload.enabled: false"
+       line: "  reload.enabled: true"
+
+- name: retrieving elasticsearch CA fingerprint for ssl config in filebeat.yml
+  shell: | 
+      awk -F: '/ca_trusted_fingerprint/ { gsub(/[}\]]/, "", $11); print $11 }' /etc/kibana/kibana.yml
+  register: ca_trusted_fingerprint
+  
+- name: Extract ca_trusted_fingerprint value
+  set_fact:
+     ca_fingerprint_value: "{{ ca_trusted_fingerprint.stdout }}"
+
+##### Filebeat
+- name: Configuring filebeat.yml { output.elasticsearch }  ca_trusted
+  blockinfile:
+       path: /etc/filebeat/filebeat.yml 
+       insertafter: '  #password: "changeme"'
+       block: |2
+           ssl:
+             enabled: true
+             ca_trusted_fingerprint: "{{ ca_fingerprint_value }}"
+
+- name: Configruring filebeat.yml {output.elasticsearch}
+  lineinfile:
+       path: /etc/filebeat/filebeat.yml 
+       regex: "  #protocol:"
+       line: '  protocol: "https"'
+
+- name: Provide input to create keystore
+  command: echo "y" | filebeat keystore create
+- name: Add keystore entry ES_UN
+  expect:
+        command: filebeat keystore add ES_UN
+        responses:
+          "Enter value for ES_UN: ": "elastic\n"
+
+- name: Add keystore entry ES_PW
+  expect:
+        command: filebeat keystore add ES_PW
+        responses:
+          "Enter value for ES_PW: ": "{{ elastic_pw_val.content | b64decode }}\n"     
+
+
+- name: Adding elastic user credentials username
+  lineinfile:
+      path: /etc/filebeat/filebeat.yml 
+      regex: '  #username: "elastic"'
+      line: "  username: ${ES_UN}"
+- name: Adding elastic user credentials password
+  lineinfile:
+      path: /etc/filebeat/filebeat.yml 
+      regex: '  #password: "changeme"'
+      line: "  password: ${ES_PW}"
+      
+    
+- name: deploying elasticsearch module config file
+  template:
+    src: elasticsearch.j2
+    dest: /etc/filebeat/modules.d/elasticsearch
+
+- name: deploying NGINX module config file
+  template:
+    src: nginx.j2
+    dest: /etc/filebeat/modules.d/nginx    
+
+- name: deploying SYSTEM module config file { SYSLOG }
+  template:
+    src: system.yml.j2
+    dest: /etc/filebeat/modules.d/system.yml
+
+- name: taking action to setup filebeat modules
+  shell: |
+    filebeat setup -e
+    
+- name: restart filebeat
+  shell: systemctl restart filebeat.service
+
 
 ##### Metricbeat
 
- name: Configruring metricbeat.yml {output.elasticsearch}
+- name: Configruring metricbeat.yml {output.elasticsearch}
   lineinfile:
        path: /etc/metricbeat/metricbeat.yml 
        regex: "  #protocol:"
        line: '  protocol: "https"'
  
+ 
+ 
 
 - name: Provide input to create keystore
   command: echo "y" | metricbeat keystore create
+  
 - name: Add metricbeat entry ES_UN
   expect:
         command: metricbeat keystore add ES_UN
         responses:
-          "Enter value for ES_UN: ": "elastic\n"
+          "The keystore does not exist. Do you want to create it? [y/N]: ": "y\n"
+          "Enter value for ES_UN: ": "elastic\n" 
 
 - name: Add keystore entry ES_PW
   expect:
