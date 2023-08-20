@@ -83,7 +83,7 @@
   lineinfile:
       path: /etc/elasticsearch/elasticsearch.yml
       regex: '^#node.name:'
-      line: 'node.name: node-1'
+      line: 'node.name: node1'
 - name: Configuring Elasticsearch conf file {network.host}
   lineinfile:
       path: /etc/elasticsearch/elasticsearch.yml
