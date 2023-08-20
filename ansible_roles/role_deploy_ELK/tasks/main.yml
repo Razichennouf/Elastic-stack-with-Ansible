@@ -278,6 +278,12 @@
     chown logstash:logstash -R /var/lib/logstash
     chown logstash:logstash -R /etc/default/logstash
     chown logstash:logstash -R /etc/logstash
+    
+- name: Fixing permission of config files of beats
+  shell: |
+    sudo chmod 644 /etc/metricbeat/metricbeat.yml
+    sudo chmod 644 /etc/filebeat/filebeat.yml
+    
 
 
 
