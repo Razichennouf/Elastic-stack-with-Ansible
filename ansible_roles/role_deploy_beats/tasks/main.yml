@@ -1,67 +1,80 @@
 ---
 # tasks file for beats_m# Configuring beats 
-#- name: Enabling metricbeat and starting it
-#  shell: |
-#     systemctl enable filebeat.service
-#     systemctl start filebeat.service
-#     systemctl enable metricbeat.service
-#     systemctl start metricbeat.serviceanagement
-#- name: retrieve the elastic_pw value
-#  slurp:
-#       src: /home/ubuntu/elastic_pw
-#  register: elastic_pw_val
+- name: Enabling metricbeat and starting it
+  shell: |
+     systemctl enable filebeat.service
+     systemctl start filebeat.service
+     systemctl enable metricbeat.service
+     systemctl start metricbeat.serviceanagement
+- name: retrieve the elastic_pw value
+  slurp:
+       src: /home/ubuntu/elastic_pw
+  register: elastic_pw_val
 
-#- name: enabling elasticsearch, Nginx, System modules
-#  shell: |
-#    filebeat modules enable elasticsearch
-#    filebeat modules enable nginx
-#    filebeat modules enable system
+- name: enabling elasticsearch, Nginx, System modules
+  shell: |
+    filebeat modules enable elasticsearch
+    filebeat modules enable nginx
+    filebeat modules enable system
 
-# Managing the keystore for secure rest //// Another way to setup passwords without changing the elasticsearch parameters in kibana  /// this should be done after token enrollment
-# Don't use a privileged user like elastic
-#- name: Creating a keystore for the stores in filebeat
-#  command: "filebeat keystore create"
-#- name: Adding Keystore with the exact parameter name in filebeat.yml
-#  command: "filebeat keystore add username"
-#  args:
-#        stdin: "elastic"
-#- name: Adding Keystore with the exact parameter name in filebeat.yml
-#  command: "filebeat keystore add password"
-#  args:
-#        stdin: "{{ elastic_pw_val.content | b64decode }}"
-
-     
 - name: Configuring filebeat.yml file {output.filebeat}
   lineinfile:
        path: /etc/filebeat/filebeat.yml 
-       regex: "^reload.enabled: false"
-       line: "reload.enabled: true"
+       regex: "  reload.enabled: false"
+       line: "  reload.enabled: true"
 
 - name: retrieving elasticsearch CA fingerprint for ssl config in filebeat.yml
-  shell: sudo tail -n 10 /etc/kibana/kibana.yml | grep ca_trusted_fingerprint
+  shell: | 
+      awk -F: '/ca_trusted_fingerprint/ { gsub(/[}\]]/, "", $11); print $11 }' /etc/kibana/kibana.yml
   register: ca_trusted_fingerprint
   
 - name: Extract ca_trusted_fingerprint value
   set_fact:
-     ca_fingerprint_value: "{{ ca_fingerprint_output.stdout | regex_search('ca_trusted_fingerprint: (.+)', '\\1') }}"
+     ca_fingerprint_value: "{{ ca_trusted_fingerprint.stdout }}"
 
 
 - name: Configuring filebeat.yml { output.elasticsearch }  ca_trusted
-  lineinfile:
+  blockinfile:
        path: /etc/filebeat/filebeat.yml 
-       marker: "Insert ssl object"
-       insertafter: "^password:"
-       block: |
-          ssl:
-	    enabled: true
-	    ca_trusted_fingerprint: "{{ ca_fingerprint_value }}"
-
+       insertafter: '  #password: "changeme"'
+       block: |2
+           ssl:
+             enabled: true
+             ca_trusted_fingerprint: "{{ ca_fingerprint_value }}"
 
 - name: Configruring filebeat.yml {output.elasticsearch}
   lineinfile:
        path: /etc/filebeat/filebeat.yml 
-       regex: '^#protocol: "https"'
-       line: 'protocol: "https"'
+       regex: "  #protocol:"
+       line: '  protocol: "https"'
+ 
+
+- name: Provide input to create keystore
+  command: echo "y" | filebeat keystore create
+- name: Add keystore entry ES_UN
+  expect:
+        command: filebeat keystore add ES_UN
+        responses:
+          "Enter value for ES_UN: ": "elastic\n"
+
+- name: Add keystore entry ES_PW
+  expect:
+        command: filebeat keystore add ES_PW
+        responses:
+          "Enter value for ES_PW: ": "{{ elastic_pw_val.content | b64decode }}\n"     
+
+
+- name: Adding elastic user credentials username
+  lineinfile:
+      path: /etc/filebeat/filebeat.yml 
+      regex: '  #username: "elastic"'
+      line: "  username: ${ES_UN}"
+- name: Adding elastic user credentials password
+  lineinfile:
+      path: /etc/filebeat/filebeat.yml 
+      regex: '  #password: "changeme"'
+      line: "  password: ${ES_PW}"
+
 
     
 - name: deploying elasticsearch module config file
