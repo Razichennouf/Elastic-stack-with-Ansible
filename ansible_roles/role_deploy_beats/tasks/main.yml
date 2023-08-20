@@ -130,11 +130,8 @@
       path: /etc/metricbeat/metricbeat.yml 
       regex: '  #username: "elastic"'
       line: "  username: ${ES_UN}"
-- name: Adding elastic user credentials password
-  lineinfile:
-      path: /etc/metricbeat/metricbeat.yml 
-      regex: '  #password: "changeme"'
-      line: "  password: ${ES_PW}"
+      
+# This should bedone before changing the value of #passowrd and removing #, its like an checkpoint getting removed, if it doesnt exist it will be appended in EOF
 
 - name: Configuring metricbeat.yml { output.elasticsearch }  ca_trusted
   blockinfile:
@@ -143,7 +140,13 @@
        block: |2
            ssl:
              enabled: true
-             ca_trusted_fingerprint: "{{ ca_fingerprint_value }}"
-      
+             ca_trusted_fingerprint: "{{ ca_fingerprint_value }}"  
+     
+- name: Adding elastic user credentials password
+  lineinfile:
+      path: /etc/metricbeat/metricbeat.yml 
+      regex: '  #password: "changeme"'
+      line: "  password: ${ES_PW}"
+ 
 - name: restart metricbeat
   shell: systemctl restart metricbeat.service
