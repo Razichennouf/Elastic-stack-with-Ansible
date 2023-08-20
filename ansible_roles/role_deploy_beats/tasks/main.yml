@@ -86,8 +86,16 @@
   template:
     src: nginx.j2
     dest: /etc/filebeat/modules.d/nginx    
-   
+
+- name: deploying SYSTEM module config file { SYSLOG }
+  template:
+    src: system.yml.j2
+    dest: /etc/filebeat/modules.d/system.yml
+
 - name: taking action to setup filebeat modules
   shell: |
     filebeat setup -e
+
+- name: restart filebeat
+  shell: systemctl restart filebeat.service
 
