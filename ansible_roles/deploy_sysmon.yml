@@ -4,5 +4,5 @@
   hosts: windows
   tasks:
   roles:
-     - role_deploy_SYSMON
+     - role_deploy_SYSMON_WINRM
 
