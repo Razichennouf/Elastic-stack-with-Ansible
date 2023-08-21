@@ -8,6 +8,10 @@
   ansible.windows.win_get_url:
       url: https://download.sysinternals.com/files/Sysmon.zip
       dest: C:\sysmon.zip
+  register: res
+  until: res is not failed  
+  retries: 3  # Number of retries before giving up
+  delay: 10  # Delay in seconds between retries
 - name: Unzipping SYSMON.ZIP
   community.windows.win_unzip:
       src: C:\sysmon.zip
@@ -17,11 +21,16 @@
   ansible.windows.win_service_info:
       name: Sysmon32
   register: service_info32
+  until: service_info32 is not failed  
+  retries: 3  # Number of retries before giving up
+  delay: 10  # Delay in seconds between retries
 - name: Get info about SYSMON 64
   ansible.windows.win_service_info:
       name: Sysmon64
   register: service_info64
-
+  until: service_info65 is not failed  
+  retries: 3  # Number of retries before giving up
+  delay: 10  # Delay in seconds between retries
 - name: Install SYSMON and persisting it as a service in 32-bit archs
   ansible.windows.win_command:
        chdir: C:\sysmon
@@ -36,12 +45,11 @@
   when:
       - "'OS Architecture: 64-bit' in os_arch_result.stdout_lines"
       - "service_info64.exists is not defined"
+  register: set
+  until: set is not failed  
+  retries: 3  # Number of retries before giving up
+  delay: 10  # Delay in seconds between retries
 - name: Check if Sysmon service is running
   debug:
       msg: "Sysmon service is running"
   when: "service_info64.exists is defined"
-
-# Managing winrm via powershell
-- name: Install and configure winrm and its components via powershell 
-  ansible.windows.win_powershell:
-     script: ../files/setup_winrm.ps1 
