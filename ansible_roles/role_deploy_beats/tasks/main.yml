@@ -6,11 +6,15 @@
      systemctl start filebeat.service
      systemctl enable metricbeat.service
      systemctl start metricbeat.serviceanagement
+     systemctl enable packetbeat.service
+     systemctl start packetbeat.service
 - name: retrieve the elastic_pw value
   slurp:
        src: /home/ubuntu/elastic_pw
   register: elastic_pw_val
 
+
+##### Filebeat
 - name: enabling elasticsearch, Nginx, System modules
   shell: |
     filebeat modules enable elasticsearch
@@ -32,7 +36,6 @@
   set_fact:
      ca_fingerprint_value: "{{ ca_trusted_fingerprint.stdout }}"
 
-##### Filebeat
 - name: Configuring filebeat.yml { output.elasticsearch }  ca_trusted
   blockinfile:
        path: /etc/filebeat/filebeat.yml 
