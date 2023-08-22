@@ -110,9 +110,6 @@
        path: /etc/metricbeat/metricbeat.yml 
        regex: "  #protocol:"
        line: '  protocol: "https"'
- 
- 
- 
 
 - name: Provide input to create keystore
   command: echo "y" | metricbeat keystore create
@@ -134,10 +131,8 @@
   lineinfile:
       path: /etc/metricbeat/metricbeat.yml 
       regex: '  #username: "elastic"'
-      line: "  username: ${ES_UN}"
-      
+      line: "  username: ${ES_UN}"   
 # This should be done before changing the value of #passowrd and removing #, its like an checkpoint getting removed, if it doesnt exist it will be appended in EOF
-
 - name: Configuring metricbeat.yml { output.elasticsearch }  ca_trusted
   blockinfile:
        path: /etc/metricbeat/metricbeat.yml 
@@ -162,3 +157,48 @@
      name: libcap0.8
      state: latest
      
+- name: Configruring packetbeat.yml {output.elasticsearch}
+  lineinfile:
+       path: /etc/packetbeat/packetbeat.yml 
+       regex: "  #protocol:"
+       line: '  protocol: "https"'
+
+- name: Provide input to create keystore
+  command: echo "y" | packetbeat keystore create
+  
+- name: Add packetbeat entry ES_UN
+  expect:
+        command: packetbeat keystore add ES_UN
+        responses:
+          "The keystore does not exist. Do you want to create it? [y/N]: ": "y\n"
+          "Enter value for ES_UN: ": "elastic\n" 
+
+- name: Add keystore entry ES_PW
+  expect:
+        command: packetbeat keystore add ES_PW
+        responses:
+          "Enter value for ES_PW: ": "{{ elastic_pw_val.content | b64decode }}\n"     
+
+- name: Adding elastic user credentials username
+  lineinfile:
+      path: /etc/packetbeat/packetbeat.yml 
+      regex: '  #username: "elastic"'
+      line: "  username: ${ES_UN}"
+# This should be done before changing the value of #passowrd and removing #, its like an checkpoint getting removed, if it doesnt exist it will be appended in EOF
+- name: Configuring packetbeat.yml { output.elasticsearch }  ca_trusted
+  blockinfile:
+       path: /etc/packetbeat/packetbeat.yml 
+       insertafter: '  #password: "changeme"'
+       block: |2
+           ssl:
+             enabled: true
+             ca_trusted_fingerprint: "{{ ca_fingerprint_value }}"  
+     
+- name: Adding elastic user credentials password
+  lineinfile:
+      path: /etc/packetbeat/packetbeat.yml 
+      regex: '  #password: "changeme"'
+      line: "  password: ${ES_PW}"
+ 
+- name: restart packetbeat
+  shell: systemctl restart packetbeat.service
