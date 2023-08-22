@@ -157,3 +157,8 @@
   shell: systemctl restart metricbeat.service
 
 ##### Packetbeat
+- name: Ensuring libcap is installed
+  apt:
+     name: libcap0.8
+     state: latest
+     
