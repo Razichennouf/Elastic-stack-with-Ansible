@@ -1,0 +1,9 @@
+---
+# This playbook is dedicated to tune at maximum the single-node deployment
+# Official documentation for the tuning https://www.elastic.co/guide/en/elasticsearch/reference/current/setup-configuration-memory.html
+- name: Tuning elasticsearch for a better index searching
+  hosts: ubuntu
+  become: t
+  gather_facts: f
+  tasks:
+  - name:
