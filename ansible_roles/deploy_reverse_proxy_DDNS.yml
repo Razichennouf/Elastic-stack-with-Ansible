@@ -1,21 +1,30 @@
 ---
-- name: Printing hint
-  debug:
-     msg: "Ensure that ports 443 and 80 are in open state behind SG or firewall"
 - name: Deploying NGINX as a Reverse proxy with a dynamic domain name
   gather_facts: n
   become: t
+  hosts: ubuntu
   vars_prompt:
     - name: elk_instance_ip
-      prompt: "Enter your Single-node ipaddress : "
+      prompt: "Enter your Single-node ipaddress "
       private: false
-  roles:
-    - role_deploy_reverse_proxy-NGINX_DDNS
-  tasks:
-- import_tasks: ddns_setup.yml
-  vars_prompt:
-      - name: ddns_token
-      prompt: "Enter your duckdns account token :" 
+    - name: ddns_token
+      prompt: "Enter your duckdns account token " 
       private: t
-      - name: ddns_name
+    - name: ddns_name
       prompt: "Enter a desired domain name, the domain name should not have a dot (.), minus (-) is permitted and should not end with (duckdns.org), Example: elk / example-elk: " 
+      private: false
+  tasks:
+  - name: Including role
+    include_role:
+      name: role_deploy_reverse_proxy-NGINX_DDNS
+  - name: Printing hint
+    debug: 
+       msg: "Ensure that ports 443 and 80 are in open state behind SG or firewall"
+  - name: Importing ddns playbook
+    import_playbook: 
+       name: ddns_setup.yml
+    vars:
+      ddns_name: "{{ ddns_name }}"
+      ddns_token_to: "{{ ddns_token }}"
+      elk_instance_ip_to: "{{ elk_instance_ip }}"
+      
