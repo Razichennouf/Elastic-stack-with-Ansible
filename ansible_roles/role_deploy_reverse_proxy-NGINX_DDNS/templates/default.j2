@@ -1,5 +1,5 @@
 server {
-	server_name {{ ddns_name }} www.{{ ddns_name }};
+	server_name {{ ddns_name }}.duckdns.com www.{{ ddns_name }}.duckdns.com;
 
         location / {
             proxy_pass http://localhost:5601;

@@ -9,5 +9,5 @@
       state: latest
   - name: Dynamically setting up the DDNS
     shell: |
-       echo url="https://www.duckdns.org/update?domains="{{ ddns_name_to }}"&token="{{ ddns_token_to }}"&ip="{{ elk_instance_ip_to }}" | curl -k -o ~/duck.log -K -
+       curl https://www.duckdns.org/update?domains="{{ ddns_name_to }}"&token="{{ ddns_token_to }}"&ip="{{ elk_instance_ip_to }}"
 

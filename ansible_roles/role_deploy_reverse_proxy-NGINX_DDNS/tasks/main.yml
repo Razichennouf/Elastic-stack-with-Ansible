@@ -1,8 +1,6 @@
 ---
 # tasks file for role_deploy_reverse_proxy-NGINX_DDNS
 # Nginx deployment
-
-
 - name: Installing NGINX Webserver
   apt:
       name:
@@ -13,20 +11,20 @@
       
 - name: Copy and render Nginx configuration file
   template:
-        src: role_deploy_ELK/templates/default.j2
+        src: role_deploy_reverse_proxy-NGINX_DDNS/templates/default.j2
         dest: /etc/nginx/sites-available/default
         mode: '0644'
 
 - name: Securing nginx with additional header layers of security
   template:
-        src: role_deploy_ELK/templates/nginx.j2
+        src: role_deploy_reverse_proxy-NGINX_DDNS/templates/nginx.j2
         dest: /etc/nginx/nginx.conf
         mode: '0644'
 #- name: Deploying SSL certificate to NGINX via certbot tool
 #  shell : |
 #       certbot --nginx -d ansi-elk.duckdns.org -d www.ansi-elk.duckdns.org
 - name: Run Certbot
-  command: certbot --non-interactive --register-unsafely-without-email --nginx -d {{ ddns_name }} -d www.{{ ddns_name }} --agree-tos 
+  command: certbot --non-interactive --register-unsafely-without-email --nginx -d {{ ddns_name }}.duckdns.com -d www.{{ ddns_name }}.duckdns.com --agree-tos 
 
 
 - name: Deploying a cron job for certificate renewal { Let's encrypt }
