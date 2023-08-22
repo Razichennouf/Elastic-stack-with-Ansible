@@ -3,6 +3,9 @@
   gather_facts: n
   become: t
   vars_prompt:
+    - name: ddns_token
+      prompt: Enter your duckdns account token : 
+      private: t
     - name: elk_instance_ip
       prompt: Enter your Single-node ipaddress : 
       private: false
