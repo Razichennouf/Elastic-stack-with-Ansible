@@ -1,0 +1,13 @@
+---
+- name: Setting up DDNS
+  gather_facts: n
+  become: t
+  tasks:
+  - name: Insuring curl is installed
+    apt:
+      name: curl
+      state: latest
+  - name: Dynamically setting up the DDNS
+    shell: |
+       echo url="https://www.duckdns.org/update?domains="{{ ddns_name }}"&token="{{ ddns_token }}"&ip="{{ elk_instance_ip }}" | curl -k -o ~/duck.log -K -
+
