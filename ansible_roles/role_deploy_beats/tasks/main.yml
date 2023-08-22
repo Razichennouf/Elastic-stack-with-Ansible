@@ -131,7 +131,7 @@
       regex: '  #username: "elastic"'
       line: "  username: ${ES_UN}"
       
-# This should bedone before changing the value of #passowrd and removing #, its like an checkpoint getting removed, if it doesnt exist it will be appended in EOF
+# This should be done before changing the value of #passowrd and removing #, its like an checkpoint getting removed, if it doesnt exist it will be appended in EOF
 
 - name: Configuring metricbeat.yml { output.elasticsearch }  ca_trusted
   blockinfile:
@@ -150,3 +150,5 @@
  
 - name: restart metricbeat
   shell: systemctl restart metricbeat.service
+
+##### Packetbeat
