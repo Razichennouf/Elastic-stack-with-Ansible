@@ -15,7 +15,7 @@
        src: /home/ubuntu/elastic_pw
   register: elastic_pw_val
 
-role_deploy_reverse_proxy-NGINX_DDNS
+
 ##### Filebeat
 - name: enabling elasticsearch, Nginx, System modules
   shell: |

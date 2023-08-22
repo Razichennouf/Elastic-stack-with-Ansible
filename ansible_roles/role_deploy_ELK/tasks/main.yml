@@ -283,62 +283,8 @@
   shell: |
     sudo chmod 644 /etc/metricbeat/metricbeat.yml
     sudo chmod 644 /etc/filebeat/filebeat.yml
+    sudo chmod 644 /etc/packetbeat/packetbeat.yml
     
 
 
 
-# Nginx deployment
-#
-#
-#
-- name: Installing NGINX Webserver
-  apt:
-      name:
-         - nginx
-         - certbot
-         - python3-certbot-nginx
-      state: latest
-      
-- name: Copy and render Nginx configuration file
-  template:
-        src: role_deploy_ELK/templates/default.j2
-        dest: /etc/nginx/sites-available/default
-        mode: '0644'
-
-- name: Securing nginx with additional header layers of security
-  template:
-        src: role_deploy_ELK/templates/nginx.j2
-        dest: /etc/nginx/nginx.conf
-        mode: '0644'
-#- name: Deploying SSL certificate to NGINX via certbot tool
-#  shell : |
-#       certbot --nginx -d ansi-elk.duckdns.org -d www.ansi-elk.duckdns.org
-- name: Run Certbot
-  command: certbot --non-interactive --register-unsafely-without-email --nginx -d ansi-elk.duckdns.org -d www.ansi-elk.duckdns.org --agree-tos 
-
-
-- name: Deploying a cron job for certificate renewal { Let's encrypt }
-  cron:
-      name: Let's encrypt SSL Certificate Renewal
-      state: present
-      user: root
-      minute: '0'
-      hour: '12'
-      day: '*'
-      weekday: '*'
-      month: '*'
-      job: /usr/bin/certbot renew --quiet
-     
-  
-
-
-# To fix the redirection from ip to domain name ======> Only when port 80 is open
-#- name: Fixing and redirecting the traffic from IpAddress to Domain name
-#  lineinfile:
-#        path: /etc/nginx/sites-available/default
-#        insertafter: '} # managed by Certbot'
-#        block: |
-            # Redirect IP addresses to the domain name
-#            if ($host ~* "^\d+\.\d+\.\d+\.\d+$") {
-#            return 301 https://ansi-elk.duckdns.org$request_uri;
-#            }
