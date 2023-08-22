@@ -1,0 +1,12 @@
+---
+- name: Deploying NGINX as a Reverse proxy
+  gather_facts: n
+  become: t
+  vars_prompt:
+    - name: elk_instance_ip
+      prompt: Enter your Single-node ipaddress : 
+      private: false
+    - name: ddns_name
+      prompt: "Enter a desired domain name, the domain name should not have a dot (.), minus (-) is permitted and should end with (duckdns.org), Example: elk.duckdns.org : " 
+  roles:
+    - role_deploy_reverse_proxy-NGINX_DDNS 
