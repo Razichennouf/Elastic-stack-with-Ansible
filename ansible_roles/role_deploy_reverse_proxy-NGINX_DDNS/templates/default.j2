@@ -1,5 +1,5 @@
 server {
-	server_name {{ DNS_registred }} {{ www_DNS_registred }};
+	server_name {{ ddns_name }} www.{{ ddns_name }};
 
         location / {
             proxy_pass http://localhost:5601;

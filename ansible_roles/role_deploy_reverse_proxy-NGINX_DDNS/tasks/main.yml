@@ -26,7 +26,7 @@
 #  shell : |
 #       certbot --nginx -d ansi-elk.duckdns.org -d www.ansi-elk.duckdns.org
 - name: Run Certbot
-  command: certbot --non-interactive --register-unsafely-without-email --nginx -d ansi-elk.duckdns.org -d www.ansi-elk.duckdns.org --agree-tos 
+  command: certbot --non-interactive --register-unsafely-without-email --nginx -d {{ ddns_name }} -d www.{{ ddns_name }} --agree-tos 
 
 
 - name: Deploying a cron job for certificate renewal { Let's encrypt }
