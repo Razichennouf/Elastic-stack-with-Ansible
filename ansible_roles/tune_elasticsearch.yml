@@ -20,7 +20,7 @@
     lineinfile:
        path: /etc/elasticsearch/elasticsearch.yml
        regex: "^#bootstrap.memory_lock:"
-       line: "bootstrap.memory_lock:: true"
+       line: "bootstrap.memory_lock: true"
   - name: restart elasticsearch
     shell: systemctl restart elasticsearch.yml
   - name: set ulimit -l unlimited
