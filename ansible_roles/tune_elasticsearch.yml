@@ -15,7 +15,9 @@
   - name: net.ipv4.tcp_retries2
     shell: echo "net.ipv4.tcp_retries2=5" >> /etc/sysctl.conf
   - name: Configure swapiness
-    shell:  echo "vm.swappiness=1" >> /etc/sysctl.conf
+    shell: |
+        echo "vm.swappiness=1" >> /etc/sysctl.conf
+        sudo sysctl -p    
   - name: Enable bootstrap.memory_lock
     lineinfile:
        path: /etc/elasticsearch/elasticsearch.yml
@@ -30,6 +32,6 @@
         # allow user 'elasticsearch' mlockall
          elasticsearch soft memlock unlimited
          elasticsearch hard memlock unlimited
-  - name: Set number of replicas to 0
+  - name: Set number of replicas to 0, if in a multinode cluster you should do that for the health check
     debug: 
       msg: "Make an API call for the replicas"
