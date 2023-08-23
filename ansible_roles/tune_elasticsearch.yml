@@ -30,4 +30,6 @@
         # allow user 'elasticsearch' mlockall
          elasticsearch soft memlock unlimited
          elasticsearch hard memlock unlimited
-       
+  - name: Set number of replicas to 0
+    debug: 
+      msg: "Make an API call for the replicas"
