@@ -6,4 +6,28 @@
   become: t
   gather_facts: f
   tasks:
-  - name:
+  - name: Disable swapping
+    shell: |
+       ss
+       swapoff -a
+  - name: Virtual memory
+    shell: echo "vm.max_map_count=262144" >> /etc/sysctl.conf
+  - name: net.ipv4.tcp_retries2
+    shell: echo "net.ipv4.tcp_retries2=5" >> /etc/sysctl.conf
+  - name: Configure swapiness
+    shell:  echo "vm.swappiness=1" >> /etc/sysctl.conf
+  - name: Enable bootstrap.memory_lock
+    lineinfile:
+       path: /etc/elasticsearch/elasticsearch.yml
+       regex: "^#bootstrap.memory_lock:"
+       line: "bootstrap.memory_lock:: true"
+  - name: restart elasticsearch
+    shell: systemctl restart elasticsearch.yml
+  - name: set ulimit -l unlimited
+    blockinfile:
+      path: /etc/security/limits.conf
+      block: |
+        # allow user 'elasticsearch' mlockall
+         elasticsearch soft memlock unlimited
+         elasticsearch hard memlock unlimited
+       
