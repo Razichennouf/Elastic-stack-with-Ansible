@@ -1,7 +1,0 @@
----
-- name: deploying BEATS
-  hosts: ubuntu
-  become: t
-  gather_facts: n
-  roles:
-    - role_deploy_beats 

@@ -1,6 +1,8 @@
 ---
-- name: Deploying { Single-node } ELK
+- name: Deploying { Single-node } ELK with { beats }
+  hosts: ubuntu
   become: t
   hosts: ubuntu
   roles:
     - role_deploy_ELK
+    - role_deploy_beats
