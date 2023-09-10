@@ -7,7 +7,12 @@
   gather_facts: f
   tasks:
   - name: Disable swapping
-    shell: |
+#To check of the swap memory is enable use these commands 
+#swapon --show
+#cat /proc/swaps
+#lsblk
+#free -h
+     shell: |
        ss
        swapoff -a
   - name: Virtual memory
