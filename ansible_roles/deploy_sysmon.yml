@@ -1,6 +1,6 @@
 ---
 - name: deploying sysmon on windows
-  #become: t # in windows we dont use become: we use become_method: runas
+  #become: t # in windows we dont use only become: clause we use become_method: runas to define the privilege escalation method to use
   hosts: windows
   tasks:
   roles:
