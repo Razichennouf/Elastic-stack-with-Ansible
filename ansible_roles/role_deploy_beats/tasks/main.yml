@@ -37,8 +37,6 @@
 - name: retrieving elasticsearch CA fingerprint for ssl config in filebeat.yml
   shell: | 
       awk -F: '/ca_trusted_fingerprint/ { gsub(/[}\]]/, "", $11); gsub(/^[[:space:]]+|[[:space:]]+$/, "", $11); print $11 }' /etc/kibana/kibana.yml
-
-
   register: ca_trusted_fingerprint
   
 - name: Extract ca_trusted_fingerprint value
@@ -61,9 +59,13 @@
        line: '  protocol: "https"'
 
 - name: Provide input to create keystore
-  command: echo "y" | filebeat keystore create
-  
-- name: Add keystore entry ES_UN
+  expect:
+        command: filebeat keystore create
+        responses:
+          "A keystore already exists, Overwrite? [y/N]: ": "y\n"
+  ignore_errors: yes  # Ignore errors in case the keystore doesn't exist
+      
+- name: Add keystore entry ES_UN (secret)
   expect:
         command: filebeat keystore add ES_UN
         responses:
@@ -71,7 +73,7 @@
 
 - name: Add keystore entry ES_PW
   expect:
-        command: echo "y" | filebeat keystore add ES_PW
+        command: filebeat keystore add ES_PW
         responses:
           "Enter value for ES_PW: ": "{{ elastic_pw_val.content | b64decode }}\n"     
 
@@ -120,9 +122,13 @@
        line: '  protocol: "https"'
 
 - name: Provide input to create keystore
-  command: echo "y" | metricbeat keystore create
+  expect:
+        command: metricbeat keystore create
+        responses:
+          "A keystore already exists, Overwrite? [y/N]: ": "y\n"
+  ignore_errors: yes  # Ignore errors in case the keystore doesn't exis
   
-- name: Add metricbeat entry ES_UN
+- name: Add metricbeat entry ES_UN (secret)
   expect:
         command: metricbeat keystore add ES_UN
         responses:
@@ -162,7 +168,7 @@
 ##### Packetbeat
 - name: Ensuring libcap is installed
   apt:
-     name: libcap0.8
+     name: libpcap0.8
      state: latest
      
 - name: Configruring packetbeat.yml {output.elasticsearch}
@@ -172,9 +178,13 @@
        line: '  protocol: "https"'
 
 - name: Provide input to create keystore
-  command: echo "y" | packetbeat keystore create
+  expect:
+        command: packetbeat keystore create
+        responses:
+          "A keystore already exists, Overwrite? [y/N]: ": "y\n"
+  ignore_errors: yes  # Ignore errors in case the keystore doesn't exis
   
-- name: Add packetbeat entry ES_UN
+- name: Add packetbeat entry ES_UN (secret)
   expect:
         command: packetbeat keystore add ES_UN
         responses:
@@ -183,7 +193,7 @@
 
 - name: Add keystore entry ES_PW
   expect:
-        command: echo "y" | packetbeat keystore add ES_PW
+        command: packetbeat keystore add ES_PW
         responses:
           "Enter value for ES_PW: ": "{{ elastic_pw_val.content | b64decode }}\n"     
 
