@@ -15,6 +15,11 @@
        src: /home/ubuntu/elastic_pw
   register: elastic_pw_val
 
+- name: Fixing permission of config files of beats
+  shell: |
+    sudo chmod 644 /etc/metricbeat/metricbeat.yml
+    sudo chmod 644 /etc/filebeat/filebeat.yml
+    sudo chmod 644 /etc/packetbeat/packetbeat.yml
 
 ##### Filebeat
 - name: enabling elasticsearch, Nginx, System modules
@@ -57,7 +62,7 @@
   command: echo "y" | filebeat keystore create
 - name: Add keystore entry ES_UN
   expect:
-        command: filebeat keystore add ES_UN
+        command: echo "y" | filebeat keystore add ES_UN
         responses:
           "Enter value for ES_UN: ": "elastic\n"
 
@@ -203,9 +208,5 @@
 - name: restart packetbeat
   shell: systemctl restart packetbeat.service
     
-- name: Fixing permission of config files of beats
-  shell: |
-    sudo chmod 644 /etc/metricbeat/metricbeat.yml
-    sudo chmod 644 /etc/filebeat/filebeat.yml
-    sudo chmod 644 /etc/packetbeat/packetbeat.yml
+
     
