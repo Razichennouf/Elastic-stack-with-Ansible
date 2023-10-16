@@ -36,7 +36,9 @@
 
 - name: retrieving elasticsearch CA fingerprint for ssl config in filebeat.yml
   shell: | 
-      awk -F: '/ca_trusted_fingerprint/ { gsub(/[}\]]/, "", $11); print $11 }' /etc/kibana/kibana.yml
+      awk -F: '/ca_trusted_fingerprint/ { gsub(/[}\]]/, "", $11); gsub(/^[[:space:]]+|[[:space:]]+$/, "", $11); print $11 }' /etc/kibana/kibana.yml
+
+
   register: ca_trusted_fingerprint
   
 - name: Extract ca_trusted_fingerprint value
@@ -60,9 +62,10 @@
 
 - name: Provide input to create keystore
   command: echo "y" | filebeat keystore create
+  
 - name: Add keystore entry ES_UN
   expect:
-        command: echo "y" | filebeat keystore add ES_UN
+        command: filebeat keystore add ES_UN
         responses:
           "Enter value for ES_UN: ": "elastic\n"
 
@@ -124,11 +127,11 @@
         command: metricbeat keystore add ES_UN
         responses:
           "The keystore does not exist. Do you want to create it? [y/N]: ": "y\n"
-          "Enter value for ES_UN: ": "elastic\n" 
+          "Enter value for ES_UN: ": "elastic\n"
 
 - name: Add keystore entry ES_PW
   expect:
-        command: echo "y" | metricbeat keystore add ES_PW
+        command: metricbeat keystore add ES_PW
         responses:
           "Enter value for ES_PW: ": "{{ elastic_pw_val.content | b64decode }}\n"     
 
@@ -173,7 +176,7 @@
   
 - name: Add packetbeat entry ES_UN
   expect:
-        command: echo "y" | packetbeat keystore add ES_UN
+        command: packetbeat keystore add ES_UN
         responses:
           "The keystore does not exist. Do you want to create it? [y/N]: ": "y\n"
           "Enter value for ES_UN: ": "elastic\n" 
