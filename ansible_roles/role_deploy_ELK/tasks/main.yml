@@ -280,7 +280,8 @@
     chown logstash:logstash -R /etc/logstash
     
 - name: Fixing permission of config files of beats
-  msg: "Now ownership management is done inside the beats role"
+  debug:
+     msg: "Now ownership management is done inside the beats role"
     
 
 
