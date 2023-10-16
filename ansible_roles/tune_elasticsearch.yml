@@ -40,3 +40,14 @@
   - name: Set number of replicas to 0, if in a multinode cluster you should do that for the health check
     debug: 
       msg: "Make an API call for the replicas"
+# Configurations needed for single-node deployment
+#
+#
+#
+- name: Setting up number_of_replicas to 0 via API call
+  shell: |
+       curl -k -H "Content-Type: application/json" -XPUT https://localhost:9200/*/_settings -d '{ "index" : { "number_of_replicas" : 0 } }' -u elastic:"{{ elastic_pw_val.content | b64decode }}"
+  register: curl_res
+- name: Printing results
+  debug:
+     var: curl_res.stdout_lines

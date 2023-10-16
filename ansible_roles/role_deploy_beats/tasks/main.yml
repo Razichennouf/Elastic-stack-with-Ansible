@@ -68,7 +68,7 @@
 
 - name: Add keystore entry ES_PW
   expect:
-        command: filebeat keystore add ES_PW
+        command: echo "y" | filebeat keystore add ES_PW
         responses:
           "Enter value for ES_PW: ": "{{ elastic_pw_val.content | b64decode }}\n"     
 
@@ -128,7 +128,7 @@
 
 - name: Add keystore entry ES_PW
   expect:
-        command: metricbeat keystore add ES_PW
+        command: echo "y" | metricbeat keystore add ES_PW
         responses:
           "Enter value for ES_PW: ": "{{ elastic_pw_val.content | b64decode }}\n"     
 
@@ -173,14 +173,14 @@
   
 - name: Add packetbeat entry ES_UN
   expect:
-        command: packetbeat keystore add ES_UN
+        command: echo "y" | packetbeat keystore add ES_UN
         responses:
           "The keystore does not exist. Do you want to create it? [y/N]: ": "y\n"
           "Enter value for ES_UN: ": "elastic\n" 
 
 - name: Add keystore entry ES_PW
   expect:
-        command: packetbeat keystore add ES_PW
+        command: echo "y" | packetbeat keystore add ES_PW
         responses:
           "Enter value for ES_PW: ": "{{ elastic_pw_val.content | b64decode }}\n"     
 
