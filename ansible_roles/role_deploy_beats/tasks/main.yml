@@ -202,3 +202,10 @@
  
 - name: restart packetbeat
   shell: systemctl restart packetbeat.service
+    
+- name: Fixing permission of config files of beats
+  shell: |
+    sudo chmod 644 /etc/metricbeat/metricbeat.yml
+    sudo chmod 644 /etc/filebeat/filebeat.yml
+    sudo chmod 644 /etc/packetbeat/packetbeat.yml
+    

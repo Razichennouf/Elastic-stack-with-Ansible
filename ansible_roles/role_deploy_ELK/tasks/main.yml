@@ -280,10 +280,7 @@
     chown logstash:logstash -R /etc/logstash
     
 - name: Fixing permission of config files of beats
-  shell: |
-    sudo chmod 644 /etc/metricbeat/metricbeat.yml
-    sudo chmod 644 /etc/filebeat/filebeat.yml
-    sudo chmod 644 /etc/packetbeat/packetbeat.yml
+  msg: "Now ownership management is done inside the beats role"
     
 
 
