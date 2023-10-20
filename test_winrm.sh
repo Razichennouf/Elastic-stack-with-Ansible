@@ -32,11 +32,11 @@ result=$(echo 'y' | openssl s_client -connect $Hostname:5986 -showcerts 2>&1) # 
 if [[ $result == *DONE* ]]; then
     echo ">>>>>> Winrm is ready to use."
 elif [[ $result == *Connection\ refused* ]]; then
-    echo "There is a firewall issue or the WinRM listener is not running."
-    echo "Hint: Try on the Windows machine to list listeners:"
-    echo '>> winrm enumerate winrm/config/listener'
-    echo 'If empty, you need to set up a listener HTTP/HTTPS.'
-    echo '>> winrm create winrm/config/listener?Address=*+Transport=HTTPS '"'"'@{Hostname=""'$Hostname'"";CertificateThumbprint=""$Thumbprint"";port=""5986""}'"'"''
+    echo "There is a firewall issue or the WinRM listener is not running / Configured."
+    echo "Hint 1: Try on the Windows machine to list listeners:"
+    echo '  >> winrm enumerate winrm/config/listener'
+    echo 'Hint 2: If empty, you need to set up a listener HTTP/HTTPS.'
+    echo '  >> winrm create winrm/config/listener?Address=*+Transport=HTTPS '"'"'@{Hostname=""'$Hostname'"";CertificateThumbprint=""$Thumbprint"";port=""5986""}'"'"''
 else
     echo "Received unexpected output. Notify me with the output to fix the script"
 fi
