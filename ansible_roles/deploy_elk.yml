@@ -10,8 +10,8 @@
     prompt: Enter your ddns domain
     private: false
   roles:
-    #- role_deploy_ELK
-    #- role_deploy_beats
+    - role_deploy_ELK
+    - role_deploy_beats
     - role_deploy_reverse_proxy-NGINX_DDNS
 - name: Enabling 30 days-trial for more unlimited access to premium content during 30-days
   import_playbook: enable_30days_trial.yml
