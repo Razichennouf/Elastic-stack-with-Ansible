@@ -3,12 +3,12 @@
   hosts: ubuntu
   become: True
   vars_prompt:
-    - name: port-80
-      prompt: Did you open Port 80? it is mandatory to open port 80 for letsencrypt challenges
-      private: false
-    - name: ddns_name
-      prompt: Enter your ddns domain
-      private: false
+  - name: port80
+    prompt: Did you open Port 80? it is mandatory to open port 80 for letsencrypt challenges
+    private: false
+  - name: ddns_name
+    prompt: Enter your ddns domain
+    private: false
   roles:
     #- role_deploy_ELK
     #- role_deploy_beats

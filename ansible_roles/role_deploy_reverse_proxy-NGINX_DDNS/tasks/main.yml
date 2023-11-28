@@ -9,7 +9,6 @@
          - python3-certbot-nginx
       state: latest
 # All challenges of letsencrypt are done by port 80
-- name:       
 - name: Copy and render Nginx configuration file
   template:
         src: role_deploy_reverse_proxy-NGINX_DDNS/templates/default.j2
