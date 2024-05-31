@@ -32,7 +32,7 @@
        regex: "^#bootstrap.memory_lock:"
        line: "bootstrap.memory_lock: true"
   - name: restart elasticsearch
-    shell: systemctl restart elasticsearch.yml
+    shell: systemctl restart elasticsearch
   - name: set ulimit -l unlimited
     blockinfile:
        path: /etc/security/limits.conf
