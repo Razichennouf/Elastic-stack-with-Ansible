@@ -156,10 +156,11 @@
        msg: "Now all of the certificate fingerprint of elasticsearch to ensure communication and the private ip address of the elasticsearch node will all be automatically added to the kibana.yml"
 - name: Gathering elastic search token for kibana auto configuration
   shell: |
-        /usr/share/elasticsearch/bin/elasticsearch-create-enrollment-token --scope kibana > /home/ubuntu/elasticsearch_token
+        /usr/share/elasticsearch/bin/elasticsearch-create-enrollment-token --scope kibana > /root/elasticsearch_token
+        chmod 600 /root/elasticsearch_token
 - name: retrieve the elasticsearch_token
   slurp:
-       src: /home/ubuntu/elasticsearch_token
+       src: /root/elasticsearch_token
   register: elastic_token
   
 - name: Starting kibana autoconfiguration
@@ -176,8 +177,8 @@
 
 - name: Generate the 3 keys
   shell: |
-        /usr/share/kibana/bin/kibana-encryption-keys generate --force | grep -A 3 "Settings:" | grep -v "Settings:" > /home/ubuntu/params_xpack
-        chmod 600 /home/ubuntu/params_xpack
+        /usr/share/kibana/bin/kibana-encryption-keys generate --force | grep -A 3 "Settings:" | grep -v "Settings:" > /root/params_xpack
+        chmod 600 /root/params_xpack
 - name: retrieve the keys with xpack params
   slurp:
        src: /home/ubuntu/params_xpack
@@ -194,14 +195,15 @@
 # Changing elastic password and saving it in the current directory for later use in 600 mode
 - name: Chaning elastic password
   shell: |
-     yes | sudo /usr/share/elasticsearch/bin/elasticsearch-reset-password -u elastic | grep -oP 'New value: \K.*' > /home/ubuntu/elastic_pw
+     yes | sudo /usr/share/elasticsearch/bin/elasticsearch-reset-password -u elastic | grep -oP 'New value: \K.*' > /root/elastic_pw
+       chmod 600 /root/elastic_pw
      
     # This is another method for the regex parsing
     # '/New value:/ {print $NF}' output.txt
     #  sed -n 's/New value: //p' output.txt
 - name: retrieve the elastic_pw value
   slurp:
-       src: /home/ubuntu/elastic_pw
+       src: /root/elastic_pw
   register: elastic_pw_val
 
 # Managing the keystore for secure rest //// Another way to setup passwords without changing the elasticsearch parameters in kibana  /// this should be done after token enrollment
