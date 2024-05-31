@@ -4,7 +4,7 @@
   gather_facts: n
   become: t
   vars_files:
-     - locked_cred
+     - locked_cred-elastic-user
   tasks:
   - shell: |
        #curl -k -X POST "https://localhost:9200/_license/start_trial?acknowledge=true" -u  "{{ elastic_user }}":"{{ elastic_pw }}"
