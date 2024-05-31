@@ -7,7 +7,7 @@
     prompt: Did you open Port 80? it is mandatory to open port 80 for letsencrypt challenges
     private: false
   - name: ddns_name
-    prompt: Enter your ddns domain
+    prompt: Enter your ddns domain without .duckdns.org
     private: false
   roles:
     - role_deploy_ELK
