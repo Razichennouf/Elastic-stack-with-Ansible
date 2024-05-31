@@ -1,2 +1,5 @@
 ansible_roles/.keys/
+ansible_roles/inventory
+ansible_roles/locked_cred
+ansible_roles/vault.yml
 certs/Cert+key.pfx
