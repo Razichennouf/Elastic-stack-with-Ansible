@@ -1,14 +1,15 @@
 ---
 - name: enabling 30 days trial
   hosts: ubuntu
-  gather_facts: n
-  become: t
+  gather_facts: no
+  become: yes
   vars_files:
-     - locked_cred-elastic-user
+    - locked_cred-elastic-user
   tasks:
-  - shell: |
-       #curl -k -X POST "https://localhost:9200/_license/start_trial?acknowledge=true" -u  "{{ elastic_user }}":"{{ elastic_pw }}"
-       curl -k -X POST "https://localhost:9200/_license/start_trial?acknowledge=true" -u elastic:"{{ elastic_pw_val.content | b64decode }}"
-    register: res
-  - debug: 
-       msg: "{{ res.stdout_lines }}"
+    - name: Start trial license
+      shell: |
+        curl -k -X POST "https://localhost:9200/_license/start_trial?acknowledge=true" -u "{{ elastic_user }}:{{ elastic_pw_val }}"
+      register: res
+    - debug:
+        msg: "If the elastic_pw_val slurp from the changed file didnt work go to the instance and retrieve the password manually and enable license manually, {{ res.stdout_lines }}"
+    #curl -k -X POST "https://localhost:9200/_license/start_trial?acknowledge=true" -u elastic:"{{ elastic_pw.content | b64decode }}"
