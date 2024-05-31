@@ -1,4 +1,4 @@
-certs/Cert+key.pfx
+certs
 ansible_roles/.keys
 ansible_roles/inventory
 ansible_roles/locked_cred
