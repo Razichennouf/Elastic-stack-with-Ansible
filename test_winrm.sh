@@ -3,6 +3,7 @@
 # Variables
 attempt=0
 max_attempts=3
+clear
 
 # Reading IP address
 while [[ $attempt -lt $max_attempts ]]
