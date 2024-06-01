@@ -1,9 +1,11 @@
 #To fully manage Fleet server and Elastic Agents we need to group moving parts:
 #	1- Create Policy
+#	    - Enroll ELastic agent standalone
+#	    - Enroll in Fleet server (to be managed by fleet), (Needs Step2,3,4 and others)
 #	2- Add fleet server integration to policy 
-#        3- Enroll Fleet server using agent package and policy token
+#       3- Enroll Fleet server using agent package and policy token
 #	4- Create Enrollment Token
-#	4- 
+# 
 
 fleet_policy_id=$(curl --request POST \
   --url 'https://localhost:5601/api/fleet/agent_policies?sys_monitoring=true' \

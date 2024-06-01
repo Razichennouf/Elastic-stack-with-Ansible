@@ -1,2 +1,38 @@
 ---
 # tasks file for role_deploy_fleet_sandbox
+- name: Create Fleet Agent Policy and Get ID
+  uri:
+    url: "http://localhost:5601/api/fleet/agent_policies?sys_monitoring=true"
+    method: POST
+    headers:
+      Content-Type: "application/json"
+      kbn-xsrf: "anything"
+    body_format: json
+    body:
+      name: "Policy test"
+      description: ""
+      namespace: "default"
+      monitoring_enabled:
+        - "logs"
+        - "metrics"
+      inactivity_timeout: 1209600
+      is_protected: false
+  register: policy_response
+
+- name: Get Fleet Agent Policy ID
+  set_fact:
+    fleet_policy_id: "{{ policy_response.json.item.id }}"---
+- name: Get enrollment tokens
+  uri:
+    url:
+      method: GET
+      headers:
+        Content-Type: "application/json"
+        kbn-xsrf: "anything"
+        Authorization: "basic {{ elastic_user }}":"{{ elastic_pw }}"
+
+  curl --request GET \
+  --url 'https://my-kibana-host:9243/api/fleet/enrollment_api_keys' \
+  --header 'Authorization: ApiKey N2VLRDA0TUJIQ05MaGYydUZrN1Y6d2diMUdwSkRTWGFlSm1rSVZlc2JGQQ==' \
+  --header 'Content-Type: application/json' \
+  --header 'kbn-xsrf: xx'

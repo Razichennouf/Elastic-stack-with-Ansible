@@ -1,6 +1,6 @@
 ---
 - name: Deploying { Single-node } ELK with { beats }
-  hosts: ubuntu
+  hosts: elasticsearch
   become: True
   vars_prompt:
   - name: port80

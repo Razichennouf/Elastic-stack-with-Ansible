@@ -2,7 +2,7 @@
 - name: Deploying NGINX as a Reverse proxy with a dynamic domain name
   gather_facts: n
   become: t
-  hosts: ubuntu
+  hosts: elasticsearch
   vars_prompt:
     - name: elk_instance_ip
       prompt: "Enter your Single-node ipaddress "

@@ -1,0 +1,19 @@
+---
+#To fully manage Fleet server and Elastic Agents we need to group moving parts:
+#       1- Create Agent Policy
+#           - Enroll ELastic agent standalone
+#           - Enroll in Fleet server (to be managed by fleet), (Needs Step2,3,4 and others)
+#       2- Create Integration Policy (also known as a package policy) and add it to an existing agent policy)
+#       3- Add fleet server integration to policy
+#       4- Enroll Fleet server using agent package and policy token
+#       5- Create Enrollment Token
+#
+# https://www.elastic.co/guide/en/fleet/8.13/fleet-api-docs.html
+- name: Playbook to Create Fleet Agent Policy
+  vars_files:
+    - locked_cred-elastic-user 
+  hosts: elasticsearch 
+  roles:
+    - ansible-role-fleet-agent-policy
+#- name: Role to deploy Agents
+#  hosts: elastic_agents
