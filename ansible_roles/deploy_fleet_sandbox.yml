@@ -9,6 +9,7 @@
 #       5- Create Enrollment Token
 #
 # https://www.elastic.co/guide/en/fleet/8.13/fleet-api-docs.html
+# https://www.youtube.com/watch?v=wiQ8U5mFncw
 - name: Playbook to Create Fleet Agent Policy
   vars_files:
     - locked_cred-elastic-user 
