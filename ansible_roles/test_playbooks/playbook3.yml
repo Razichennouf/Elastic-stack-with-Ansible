@@ -3,8 +3,8 @@
   hosts: ubuntu
   gather_facts: n
   vars:
-    - DNS_registred: ansi-elk.duckdns.org
-    - www_DNS_registred: www.ansi-elk.duckdns.org
+    - DNS_registred: Somedomain.org
+    - www_DNS_registred: somedomain.org
     - server_tokens: off
   tasks:
   - name: Installing NGINX Webserver
