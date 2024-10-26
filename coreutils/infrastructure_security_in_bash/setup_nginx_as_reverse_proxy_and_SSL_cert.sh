@@ -18,11 +18,11 @@ sudo apt install certbot && sudo apt install python3-certbot-nginx
 # Adding these lines to the nginx server configuration file
 server {
 
-        server_name "ansi-elk.duckdns.org" "www.ansi-elk.duckdns.org";
+        server_name "somedomain.org" "www.somedomain.org";
 
 
 # Deploy certificate using the certbot
-sudo certbot --nginx -d ansi-elk.duckdns.org -d www.ansi-elk.duckdns.org
+sudo certbot --nginx -d somedomain.org -d somedomain.org
 
 sudo crontab -e
         0 12 * * * /usr/bin/certbot renew --quiet
